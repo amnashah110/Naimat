@@ -1,0 +1,40 @@
+from flask import Flask, Response
+
+app = Flask(__name__)
+
+metrics_data = """
+# HELP meals_received_total Total number of meals received
+# TYPE meals_received_total counter
+meals_received_total 500
+
+# HELP claims_made_total Total number of claims made
+# TYPE claims_made_total counter
+claims_made_total 300
+
+# HELP average_time_to_receive_seconds Average time to receive a meal (seconds)
+# TYPE average_time_to_receive_seconds gauge
+average_time_to_receive_seconds 3600
+
+# HELP meals_saved_total Total number of meals saved
+# TYPE meals_saved_total counter
+meals_saved_total 450
+
+# HELP total_food_donated_kg Total amount of food donated (in kg)
+# TYPE total_food_donated_kg gauge
+total_food_donated_kg 1200
+
+# HELP donations_made_total Total number of donations made
+# TYPE donations_made_total counter
+donations_made_total 140
+
+# HELP average_pickup_time_seconds Average pickup time (seconds)
+# TYPE average_pickup_time_seconds gauge
+average_pickup_time_seconds 4500
+"""
+
+@app.route("/metrics")
+def metrics():
+    return Response(metrics_data, mimetype="text/plain")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8085)
