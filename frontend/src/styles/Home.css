@@ -1,0 +1,258 @@
+.homepage {
+  background: linear-gradient(
+    180deg,
+    rgb(24, 24, 24),
+    rgb(0, 0, 0)
+  );
+  min-height: 110vh;
+  width: 100vw;
+  box-sizing: border-box;
+  z-index: 0;
+  padding-top: 60px;
+  overflow-x: hidden;
+}
+
+.header {
+  background-image: url("../assets/headerBg.jpg");
+  background-size: cover;
+  background-position: center;
+  height: 170px;
+  max-width: 100vw;
+  position: relative;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.img {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 40%;
+  z-index: 1000;
+  animation: fadeImage 1s;
+  opacity: 0.2;
+}
+
+.title {
+  width: 50%;
+  z-index: 100;
+  position: absolute;
+  left: 28%;
+  margin-top: -50px;
+  font-family: "Gandhara";
+  font-size: clamp(100px, 22vw, 260px);
+  color: #e2d7a0;
+  animation: slideIn 3s ease-in-out;
+}
+
+.subtitle {
+  font-family: "Poppins";
+  font-size: clamp(20px, 2vw, 50px);
+  color: #e2d7a0;
+  animation: slideIn 3s ease-in-out;
+  z-index: 100;
+  position: absolute;
+  left: 40%;
+  bottom: 0px;
+}
+
+.liner {
+  background-color: rgb(0, 0, 0);
+  margin: 0;
+  max-width: 100vw;
+  padding-left: 2%;
+  animation: slideInLeft 2s ease-in-out;
+  overflow: hidden;
+}
+
+.liner-text {
+  text-align: center;
+  font-family: "Poppins";
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.8);
+  overflow: hidden; /* Ensures the typing effect works */
+  white-space: nowrap; /* Prevents wrapping */
+  display: inline-block; /* Keeps text inline */
+  font-size: 3.5vw; /* Adjust font size */
+  text-shadow: 2px 2px 0px rgba(173, 172, 172, 0.668);
+  animation: typing 5s steps(50, end) infinite alternate 3s;
+}
+
+.mission-joinus{
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
+  margin: 2rem;
+  animation: slideInLeft 2s ease-in-out;
+}
+
+.mission-box, .joinus-box {
+  padding: 2rem 1rem;
+  background-color: rgba(52, 51, 51, 0.37);
+  border: 5px dashed black;
+  border-radius: 20px;
+  max-width: 90%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 85vw;
+}
+
+.mission-box{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.mission-title, .joinus-title {
+  font-family: "Significent", sans-serif;
+  font-weight: bold;
+  text-align: center;
+  font-size: clamp(20px, 5vw, 70px);
+  color: #ebdfa3;
+  text-shadow: 2px 2px 0px rgba(63, 63, 63, 0.668);
+  letter-spacing: 2px;
+  margin: 0;
+  width: 100%; /* Ensure title spans full width */
+}
+
+.card {
+  height: 350px; /* Flexible height */
+  aspect-ratio: 1.5/1; /* Square aspect ratio */
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  border-radius: 10px;
+  box-shadow: 2px 5px 8px rgba(28, 29, 30, 0.4);
+  transition: transform 0.5s ease-in-out;
+  box-sizing: border-box;
+  border: 5px dashed rgb(0, 0, 0);
+}
+
+.overlay{
+  height: 350px; /* Flexible height */
+  aspect-ratio: 1.5/1; /* Square aspect ratio */
+  position: absolute;
+  top: 0px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(0, 0, 0);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  overflow: hidden;
+}
+
+.card-text {
+  text-align: center;
+  font-family: "Poppins";
+  font-weight: bold;
+  font-size: clamp(16px, 3vw, 31px); /* Responsive font size */
+  color: rgb(245, 226, 187);
+  text-shadow: 2px 2px px rgb(194, 177, 102);
+  display: flex;
+  padding: 1rem;
+  position: absolute;
+  white-space: normal; /* Allow text wrapping */
+  word-wrap: break-word; /* Ensure long words wrap */
+  top: 30%;
+  left: 0;
+}
+
+.card:hover {
+  transform: scale(1.05); /* Subtle zoom on hover */
+  color: rgb(240, 231, 158);
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(212, 208, 208, 0.3);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  cursor: pointer;
+  font-size: 18px;
+  z-index: 3; /* Ensure arrows are clickable */
+}
+
+.joinus-text{
+  text-align: center;
+  font-family: "Poppins";
+  font-size: clamp(16px, 3vw, 20px); /* Responsive font size */
+  color: rgb(245, 226, 187);
+  text-shadow: 2px 2px 2px rgb(62, 62, 62);
+  white-space: normal; /* Allow text wrapping */
+  word-wrap: break-word; /* Ensure long words wrap */
+  margin: 0;
+  padding: 1rem;
+}
+
+.joinus-button{
+  display: block;
+  background-color: #e2d7a0;
+  color: #000;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 0 auto;
+  text-align: center;
+  max-width: 140px;
+  font-family: "Poppins";
+}
+
+.joinus-button:hover {
+  text-shadow: 0px 0px 10px black;
+  color: black;
+}
+
+.signup-button{
+  background-color: #e2d7a0;
+  color: #000;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 25px;
+  margin: 0 auto;
+  text-align: center;
+  max-width: 140px;
+  font-family: "Poppins";
+  font-weight: bold;
+}
+
+@media (min-width: 1024px) {
+  .homepage {
+    padding-top: 80px;
+  }
+
+  .header {
+    height: 300px;
+  }
+
+  .title {
+    margin-top: -50px;
+    left: 31%;
+  }
+
+  .img {
+    width: 25%;
+  }
+  .card-text{
+    top: 25%;
+  }
+
+  .card{
+    height: 400px;
+  }
+}
