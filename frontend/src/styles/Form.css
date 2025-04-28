@@ -1,0 +1,135 @@
+.form {
+    background: linear-gradient(
+      180deg,
+      rgb(24, 24, 24),
+      rgb(0, 0, 0)
+    );
+    min-height: 110vh;
+    width: 100vw;
+    box-sizing: border-box;
+    z-index: 0;
+    padding-top: 60px;
+    overflow-x: hidden;
+    padding-bottom: 50px;
+  }
+
+.form-header{
+  height: 15vw;
+  width: 100vw;
+  position: relative;
+  padding: 2rem;
+  overflow: hidden;
+  background-color: rgb(0, 0, 0);
+  font-family: "Poppins";
+  margin: 0;
+}
+
+.form-title{
+    font-size: clamp(15px, 10vw, 50px);
+    font-weight: 900;
+    color: #eadbb8;
+    letter-spacing: 5px;
+    margin: 0;
+    position: absolute;
+    top: 27%;
+    left: 12%;
+    z-index: 1000;
+    text-shadow: 4px 4px 4px #363535;
+}
+
+.form-body {
+    border: dashed 5px rgba(236, 236, 236, 0.823);
+  position: relative;
+  width: 93%;
+  display: grid;
+  overflow: hidden;
+  color: white;
+  border-radius: 5px;
+  background-color: rgb(0, 0, 0);
+  box-shadow: 0px 0px 10px rgba(37, 37, 37, 0.5);
+  font-family: "Poppins";
+  margin: 20px 20px 0 12px;
+  grid-template-columns: 1fr;
+  gap: 2px;
+}
+
+.form-left{
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: 40% 40%;
+    gap: 6px;
+    align-items: center;
+    text-align: left;
+    font-size: 1.5vw;
+    font-weight: 600;
+    font-family: "Poppins";
+    place-content: center;
+    border-bottom: dashed 1px rgba(236, 236, 236, 0.823);
+}
+
+.form-right{
+    padding: 1rem;
+    font-weight: 600;
+    font-family: "Poppins";
+    place-content: center;
+}
+
+p {
+    margin-bottom: 5px;
+}
+
+h2, h1 {
+    margin: 0;
+    padding: 1rem;
+}
+
+select, input {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-family: "Poppins";
+    margin: 0;
+  }
+  
+
+  
+  .submit-button {
+    padding: 10px 5px;
+    background-color: #19501b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 15px;
+    border: 3px dashed #13af66;
+    max-width: 150px;
+  }
+
+  
+  .submit-button:hover {
+    background-color: #45a049;
+    border-color: #1e744c;
+  }
+
+@media (min-width: 1024px) {
+    .form-title {
+        font-size: clamp(15px, 10vw, 100px);
+    }
+
+    .form-body {
+        grid-template-columns: 1fr 40%;
+        place-content: center;
+    }
+
+    .form-left{
+        border-right: dashed 1px rgba(236, 236, 236, 0.823);
+        border-bottom: none;
+        padding: 2rem;
+        gap: 2px;
+    }
+
+    .submit-button {
+        border: 5px dashed #13af66;
+        max-width: 250px;
+    }
+}

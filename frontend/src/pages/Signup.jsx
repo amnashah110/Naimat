@@ -688,7 +688,7 @@ export default function MultiStepForm() {
             >
               <button
                 onClick={prevStep}
-                disabled={step === 1}
+                disabled={step === 0}
                 style={{
                   backgroundColor: "black",
                   border: "3px dashed grey",
