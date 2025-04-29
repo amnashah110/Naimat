@@ -20,6 +20,7 @@ jobs:
       run: |
         cd frontend
         npm run build
+        ls -la build  # Verify that the build directory contains files
     - name: Deploy Frontend to EC2
       uses: appleboy/scp-action@master
       with:
