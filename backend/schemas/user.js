@@ -35,7 +35,7 @@ const userSchema = new Schema({
     type: {
         type: String,
         enum: ["donor", "recipeint"],
-        required: false,
+        required: true,
     },
 });
 
