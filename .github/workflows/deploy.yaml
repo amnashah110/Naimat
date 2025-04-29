@@ -20,14 +20,14 @@ jobs:
       run: |
         cd frontend
         npm run build
-        ls -la build  # Verify that the build directory contains files
+        ls -la dist  # Verify that the dist directory contains files (for Vite)
     - name: Deploy Frontend to EC2
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.NAIMAT_HACKOPS }}
-        source: "frontend/build/*"
+        source: "frontend/dist/*"  # Use dist folder instead of build
         target: "/home/ec2-user/naimat/frontend"
     # Build and Deploy Backend
     - name: Install Backend Dependencies
@@ -52,7 +52,7 @@ jobs:
         script: |
           cd /home/ec2-user/naimat/frontend
           pm2 stop frontend || true
-          pm2 start "serve -s build -l 5173" --name "frontend"
+          pm2 start "serve -s /home/ec2-user/naimat/frontend/dist -l 5173" --name "frontend"
           cd /home/ec2-user/naimat/backend
           pm2 stop backend || true
           pm2 start "npm start" --name "backend"
