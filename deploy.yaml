@@ -1,0 +1,57 @@
+name: Deploy Frontend and Backend to EC2
+on:
+  push:
+    branches: [ main ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    # Build and Deploy Frontend
+    - name: Set up Node.js for Frontend
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+    - name: Install Frontend Dependencies
+      run: |
+        cd frontend
+        npm install
+    - name: Build Frontend
+      run: |
+        cd frontend
+        npm run build
+    - name: Deploy Frontend to EC2
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "frontend/build/*"
+        target: "/home/ec2-user/my-app/frontend"
+    # Build and Deploy Backend
+    - name: Install Backend Dependencies
+      run: |
+        cd backend
+        npm install
+    - name: Deploy Backend to EC2
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "backend/*"
+        target: "/home/ec2-user/my-app/backend"
+    # Restart Both Apps with PM2
+    - name: Restart Frontend and Backend with PM2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /home/ec2-user/my-app/frontend
+          pm2 stop frontend || true
+          pm2 start "serve -s build -l 5173" --name "frontend"
+          cd /home/ec2-user/my-app/backend
+          pm2 stop backend || true
+          pm2 start "node server.js" --name "backend"
