@@ -12,7 +12,7 @@ connectDB();
 // Middleware setup
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: 'http://13.61.179.126:5173' }));
 app.use('/auth', userRoutes);
 app.use('/', donationRoutes);
 
