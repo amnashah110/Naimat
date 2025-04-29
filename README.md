@@ -1,5 +1,7 @@
 # Naimat: Turning Surplus into Support
 
+Project URL (hosted with EC2): http://13.61.179.126:5173/
+
 Naimat is a food redistribution platform that connects restaurants and stores with surplus food to charities and communities in need. Built with a modern DevOps pipeline, Naimat ensures reliable, scalable, and secure operations to reduce food waste and support food-insecure populations.
 
 ## Table of Contents
