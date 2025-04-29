@@ -2,11 +2,11 @@ import { React, useState, useEffect } from "react";
 import "../styles/Home.css";
 import "../styles/fonts.css";
 import "../styles/animations.css";
-import headerPNG from "../assets/IMG_9076.PNG";
-import Logo from "../assets/Logo.PNG";
-import one from "../assets/IMG_9074.PNG";
-import two from "../assets/IMG_9075.PNG";
-import three from "../assets/IMG_9077.PNG";
+import headerPNG from "../assets/IMG_9076.png";
+import Logo from "../assets/Logo.png";
+import one from "../assets/IMG_9074.png";
+import two from "../assets/IMG_9075.png";
+import three from "../assets/IMG_9077.png";
 import { Link } from "react-router-dom";
 
 function Home() {
