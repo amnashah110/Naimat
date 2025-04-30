@@ -37,7 +37,7 @@ jobs:
     # Build and Deploy Backend
     - name: Install Backend Dependencies
       run: |
-        cd backend/backend  # Update path to backend/backend
+        cd backend/backend  # Adjust path according to the structure
         npm install
 
     - name: Deploy Backend to EC2
@@ -46,7 +46,7 @@ jobs:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.NAIMAT_HACKOPS }}
-        source: "backend/backend/*"  # Updated path to backend/backend
+        source: "backend/backend/*"
         target: "/home/ec2-user/naimat/backend"
 
     # Restart Both Apps with PM2
@@ -60,6 +60,6 @@ jobs:
           cd /home/ec2-user/naimat/frontend
           pm2 stop frontend || true
           pm2 start "serve -s /home/ec2-user/naimat/frontend/frontend/dist -l 5173" --name "frontend"
-          cd /home/ec2-user/naimat/backend/backend  # Update path to backend/backend
+          cd /home/ec2-user/naimat/backend/backend  # Adjust path to backend
           pm2 stop backend || true
           pm2 start "npm start" --name "backend"
