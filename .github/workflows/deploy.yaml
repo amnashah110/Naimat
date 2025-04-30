@@ -2,47 +2,53 @@ name: Deploy Frontend and Backend to EC2
 on:
   push:
     branches: [ main, dev ]
-  workflow_dispatch:
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+
     # Build and Deploy Frontend
     - name: Set up Node.js for Frontend
       uses: actions/setup-node@v3
       with:
         node-version: '20'
+
     - name: Install Frontend Dependencies
       run: |
-        cd frontend/frontend
+        cd frontend
         npm install
+
     - name: Build Frontend
       run: |
-        cd frontend/frontend
+        cd frontend
         npm run build
         ls -la dist  # Verify that the dist directory contains files (for Vite)
+
     - name: Deploy Frontend to EC2
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.NAIMAT_HACKOPS }}
-        source: "frontend/frontend/dist/*"
+        source: "frontend/dist/*"  # Use dist folder instead of build
         target: "/home/ec2-user/naimat/frontend"
+
     # Build and Deploy Backend
     - name: Install Backend Dependencies
       run: |
-        cd backend/backend
+        cd backend/backend  # Correct path to the actual backend folder
         npm install
+
     - name: Deploy Backend to EC2
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.NAIMAT_HACKOPS }}
-        source: "backend/backend/*"
+        source: "backend/backend/*"  # Correct path to the actual backend folder
         target: "/home/ec2-user/naimat/backend"
+
     # Restart Both Apps with PM2
     - name: Restart Frontend and Backend with PM2
       uses: appleboy/ssh-action@master
@@ -53,7 +59,7 @@ jobs:
         script: |
           cd /home/ec2-user/naimat/frontend
           pm2 stop frontend || true
-          pm2 start "serve -s dist -l 5173" --name "frontend"
-          cd /home/ec2-user/naimat/backend
+          pm2 start "serve -s /home/ec2-user/naimat/frontend/frontend/dist -l 5173" --name "frontend"
+          cd /home/ec2-user/naimat/backend/backend  # Correct path to the backend directory
           pm2 stop backend || true
           pm2 start "npm start" --name "backend"
