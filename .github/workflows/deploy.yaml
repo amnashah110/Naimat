@@ -21,7 +21,7 @@ jobs:
       run: |
         cd frontend
         npm run build
-        ls -la dist  # Verify that the dist directory contains files (for Vite)
+        ls -la dist
     - name: Deploy Frontend to EC2
       uses: appleboy/scp-action@master
       with:
@@ -43,6 +43,17 @@ jobs:
         key: ${{ secrets.NAIMAT_HACKOPS }}
         source: "backend/*"
         target: "/home/ec2-user/naimat/backend"
+    # Create .env File on EC2
+    - name: Create .env File on EC2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        key: ${{ secrets.NAIMAT_HACKOPS }}
+        script: |
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" > /home/ec2-user/naimat/backend/.env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> /home/ec2-user/naimat/backend/.env
+          echo "PORT=6000" >> /home/ec2-user/naimat/backend/.env
     # Restart Both Apps with PM2
     - name: Restart Frontend and Backend with PM2
       uses: appleboy/ssh-action@master
@@ -51,9 +62,8 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.NAIMAT_HACKOPS }}
         script: |
+          pm2 delete all || true
           cd /home/ec2-user/naimat/frontend
-          pm2 stop frontend || true
           pm2 start "serve -s dist -l 5173" --name "frontend"
           cd /home/ec2-user/naimat/backend
-          pm2 stop backend || true
           pm2 start "npm start" --name "backend"
