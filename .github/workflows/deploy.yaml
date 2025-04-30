@@ -53,6 +53,6 @@ jobs:
           cd /home/ec2-user/naimat/frontend
           pm2 stop frontend || true
           pm2 start "serve -s /home/ec2-user/naimat/frontend/frontend/dist -l 5173" --name "frontend"
-          cd /home/ec2-user/naimat/backend
+          cd /home/ec2-user/naimat/backend/backend
           pm2 stop backend || true
           pm2 start "npm start" --name "backend"
