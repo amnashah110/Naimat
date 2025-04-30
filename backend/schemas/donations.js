@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const donationSchema = new Schema({
     username: {
         type: String,
-        required: true
+        required: true,
     },
     foodType: {
         type: String,
