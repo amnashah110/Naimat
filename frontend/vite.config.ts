@@ -5,6 +5,9 @@ import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfil
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    outDir: 'build'  // Azure expects 'build'
+  },
   optimizeDeps: {
     esbuildOptions: {
       // Polyfill Node globals like crypto for Node 20+
