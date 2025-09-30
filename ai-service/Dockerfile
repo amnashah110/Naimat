@@ -10,11 +10,11 @@ COPY requirements.txt .
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
-COPY . .
+# Copy the FastAPI application code
+COPY app/ ./app
 
 # Expose the port your app will run on (match Azure ingress port)
 EXPOSE 8001
 
 # Run FastAPI using uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
