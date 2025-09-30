@@ -7,7 +7,7 @@ on:
     branches: 
       [ main ]
     paths:
-    - '**'
+    - 'ai-service/**'
     - '.github/workflows/naimat-backend-AutoDeployTrigger-b332629c-5e37-46a7-8057-088b83e4a6a3.yml'
 
   # Allow manual trigger 
@@ -34,16 +34,14 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
-          registryUrl: 
+          appSourcePath: ./ai-service
+          dockerfilePath: ./ai-service/Dockerfile
+          registryUrl: naimatregistry.azurecr.io
           registryUsername: ${{ secrets.NAIMATBACKEND_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.NAIMATBACKEND_REGISTRY_PASSWORD }}
           containerAppName: naimat-backend
           resourceGroup: naimat-dev_group
-          imageToBuild: default/[parameters('containerAppName')]:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
+          imageToBuild: naimatregistry.azurecr.io/naimat-backend:${{ github.sha }}
+
 
 
