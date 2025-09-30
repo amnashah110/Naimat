@@ -35,13 +35,14 @@ jobs:
         uses: azure/container-apps-deploy-action@v2
         with:
           appSourcePath: ./ai-service
-          dockerfilePath: ./ai-service/Dockerfile
+          dockerfilePath: Dockerfile
           registryUrl: naimatregistry.azurecr.io
           registryUsername: ${{ secrets.NAIMATBACKEND_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.NAIMATBACKEND_REGISTRY_PASSWORD }}
           containerAppName: naimat-backend
           resourceGroup: naimat-dev_group
           imageToBuild: naimatregistry.azurecr.io/naimat-backend:${{ github.sha }}
+
 
 
 
