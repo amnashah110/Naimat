@@ -1,13 +1,13 @@
-name: Trigger auto deployment for naimat-backend
+name: Trigger auto deployment for ai-service
 
 on:
-  # Automatically trigger it when detected changes in repo
+  # Automatically trigger when changes are pushed
   push:
     branches: 
       [ main ]
     paths:
-    - 'ai-service/**'
-    - '.github/workflows/naimat-backend-AutoDeployTrigger-b332629c-5e37-46a7-8057-088b83e4a6a3.yml'
+      - 'ai-service/**'
+      - '.github/workflows/ai-service-AutoDeployTrigger.yml'
 
   # Allow manual trigger 
   workflow_dispatch:      
@@ -16,8 +16,8 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions: 
-      id-token: write #This is required for requesting the OIDC JWT Token
-      contents: read #Required when GH token is used to authenticate with private repo
+      id-token: write # Required for OIDC JWT Token
+      contents: read # Required to authenticate with private repo
 
     steps:
       - name: Checkout to the branch
@@ -38,13 +38,6 @@ jobs:
           registryUrl: naimatregistry.azurecr.io
           registryUsername: ${{ secrets.NAIMATBACKEND_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.NAIMATBACKEND_REGISTRY_PASSWORD }}
-          containerAppName: naimat-backend
+          containerAppName: ai-service
           resourceGroup: naimat-dev_group
-          imageToBuild: naimatregistry.azurecr.io/naimat-backend:${{ github.sha }}
-
-
-
-
-
-
-
+          imageToBuild: naimatregistry.azurecr.io/ai-service:${{ github.sha }}
