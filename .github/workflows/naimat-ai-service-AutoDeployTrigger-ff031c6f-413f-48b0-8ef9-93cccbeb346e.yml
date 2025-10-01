@@ -37,11 +37,12 @@ jobs:
           appSourcePath: ./ai-service
           dockerfilePath: Dockerfile
           registryUrl: naimatregistry.azurecr.io
-          registryUsername: ${{ secrets.NAIMATAISERVICE_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.NAIMATAISERVICE_REGISTRY_PASSWORD }}
+          registryUsername: ${{ secrets.NAIMAT_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.NAIMAT_REGISTRY_PASSWORD }}
           containerAppName: naimat-ai-service
           resourceGroup: naimat-dev_group
           imageToBuild: naimatregistry.azurecr.io/ai-service:${{ github.sha }}
+
 
 
 
