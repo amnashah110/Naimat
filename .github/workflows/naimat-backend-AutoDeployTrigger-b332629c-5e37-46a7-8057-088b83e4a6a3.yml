@@ -1,6 +1,5 @@
 name: Trigger auto deployment for naimat-backend
 
-# When this action will be executed
 on:
   # Automatically trigger it when detected changes in repo
   push:
@@ -42,6 +41,7 @@ jobs:
           containerAppName: naimat-backend
           resourceGroup: naimat-dev_group
           imageToBuild: naimatregistry.azurecr.io/naimat-backend:${{ github.sha }}
+
 
 
 
