@@ -1,5 +1,6 @@
 name: Trigger auto deployment for naimat-ai-service
 
+
 # When this action will be executed
 on:
   # Automatically trigger it when detected changes in repo
@@ -42,6 +43,7 @@ jobs:
           containerAppName: naimat-ai-service
           resourceGroup: naimat-dev_group
           imageToBuild: naimatregistry.azurecr.io/ai-service:${{ github.sha }}
+
 
 
 
