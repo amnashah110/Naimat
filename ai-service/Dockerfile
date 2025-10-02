@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app
 
 # Expose the port your app will run on (match Azure ingress port)
-EXPOSE 8001
+EXPOSE 8000
 
 # Run FastAPI using uvicorn
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
