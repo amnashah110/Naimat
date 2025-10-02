@@ -43,9 +43,10 @@ jobs:
           containerAppName: naimat-ai-service
           resourceGroup: naimat-dev_group
           imageToBuild: naimatregistry.azurecr.io/ai-service:${{ github.sha }}
-          ingress: true
+          ingress: external
           targetPort: 80
           trafficWeight: 100
+
 
 
 
