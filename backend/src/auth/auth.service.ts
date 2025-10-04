@@ -2,7 +2,7 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { verify, hash } from 'argon2';
-import refreshConfig from 'src/config/refresh.config';
+import refreshConfig from 'src/auth/config/refresh.config';
 import { CreateUserDto } from 'src/user/dto/createuser.dto';
 import { UserService } from 'src/user/user.service';
 
