@@ -9,7 +9,10 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenStrategy } from './strategies/refresh.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
 import { ConfigModule } from '@nestjs/config';
+import googleOauthConfig from './config/google-oauth.config';
+import { GoogleStrategy } from './strategies/google-oauth.strategy';
 
 @Module({
   controllers: [AuthController],
@@ -18,13 +21,16 @@ import { ConfigModule } from '@nestjs/config';
     AuthService,
     JwtStrategy,
     RefreshTokenStrategy,
-    {provide: APP_GUARD, useClass: JwtAuthGuard}],
+    LocalStrategy,
+    GoogleStrategy,
+    {provide: APP_GUARD, useClass: JwtAuthGuard}], 
 
   imports: [
     UserModule,
     JwtModule.registerAsync(jwtConfig.asProvider()),
     ConfigModule.forFeature(jwtConfig),
-    ConfigModule.forFeature(refreshConfig)
+    ConfigModule.forFeature(refreshConfig),
+    ConfigModule.forFeature(googleOauthConfig)
   ],
 })
 export class AuthModule {}

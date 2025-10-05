@@ -15,14 +15,12 @@ export class AuthService
         @Inject(refreshConfig.KEY) private refreshTokenConfig: ConfigType<typeof refreshConfig>
     ) {}
 
-    async login(username: string, password: string)
+    async login(id: number)
     {
-        const user = await this.validate(username, password);
-
         return {
-            id: user.id,
-            jwt: this.jwtService.sign({ sub: user.id }),
-            refresh: this.jwtService.sign({ sub: user.id }, this.refreshTokenConfig),
+            id,
+            jwt: this.jwtService.sign({ sub: id }),
+            refresh: this.jwtService.sign({ sub: id }, this.refreshTokenConfig),
         };
     }
 
@@ -30,7 +28,7 @@ export class AuthService
     {
         const password_hash = await hash(user.password);
         const { password, ...restuser } = user;
-        const createdUser = await this.userService.createUser({ ...restuser, password_hash });
+        const createdUser = await this.userService.createUser({ ...restuser, password_hash, auth_provider: 'Email' });
 
         return {
             id: createdUser.id,
@@ -41,10 +39,16 @@ export class AuthService
 
     async validate(username: string, password: string)
     {
-        const user = await this.userService.findbyusername(username);
+        let user = await this.userService.findbyusername(username);
+
+        if (!user)
+            user = await this.userService.findbyemail(username);
 
         if (!user)
             throw new UnauthorizedException("Error: Username doesn't exist!");
+
+        if (user.auth_provider !== 'Email')
+            throw new UnauthorizedException("Error: Invalid authentication provider!");
 
         if (!await verify(user.password_hash, password))
             throw new UnauthorizedException("Error: Invalid password!");
@@ -59,5 +63,16 @@ export class AuthService
         let jwt = this.jwtService.sign(payload);
 
         return { id, jwt };
+    }
+
+    async validateGoogleUser(googleUser)
+    {
+        const user = await this.userService.findbyemail(googleUser.email);
+
+        if (!user) return await this.userService.createUser(googleUser);
+
+        if (user.auth_provider !== 'Google') throw new UnauthorizedException("Error: Invalid authentication provider!");
+
+        return user;
     }
 }
