@@ -3,6 +3,7 @@ import type { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { verify, hash } from 'argon2';
 import refreshConfig from 'src/auth/config/refresh.config';
+import { User } from 'src/entities/user.entity';
 import { CreateUserDto } from 'src/user/dto/createuser.dto';
 import { UserService } from 'src/user/user.service';
 
@@ -15,7 +16,7 @@ export class AuthService
         @Inject(refreshConfig.KEY) private refreshTokenConfig: ConfigType<typeof refreshConfig>
     ) {}
 
-    async login(id: number)
+    async signTokens(id: number)
     {
         return {
             id,
@@ -72,6 +73,14 @@ export class AuthService
         if (!user) return await this.userService.createUser(googleUser);
 
         if (user.auth_provider !== 'Google') throw new UnauthorizedException("Error: Invalid authentication provider!");
+
+        return user;
+    }
+
+    async userinfofromemail(email: string): Promise<User>
+    {
+        let user = await this.userService.findbyemail(email);
+        if (!user) throw new UnauthorizedException("Error: Email doesn't exist!");
 
         return user;
     }
