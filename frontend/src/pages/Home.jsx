@@ -3,7 +3,7 @@ import "../styles/Home.css";
 import "../styles/fonts.css";
 import "../styles/animations.css";
 import headerPNG from "../assets/IMG_9076.PNG";
-import Logo from "../assets/Logo.PNG";
+import logo from "../assets/Logo.png";
 import one from "../assets/IMG_9074.PNG";
 import two from "../assets/IMG_9075.PNG";
 import three from "../assets/IMG_9077.PNG";
@@ -97,7 +97,7 @@ function Home() {
           animation: "slideIn 0.6s ease-out",
         }}
       >
-        {/* Logo and Title */}
+        {/* logo and Title */}
         <div
           style={{
             display: "flex",
@@ -106,8 +106,8 @@ function Home() {
           }}
         >
           <img
-            src={Logo}
-            alt="Logo"
+            src={logo}
+            alt="logo"
             style={{
               width: isFullScreen ? "80px" : "60px",
               rotate: "30deg",
@@ -181,13 +181,12 @@ function Home() {
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  height: "300px",
                   position: "relative",
                   top: "20px",
                   margin: "-30px 0 25px 0",
                   padding: "0",
                   height: "60vh",
-                  maxheight: "200px",
+                  maxHeight: "200px",
                 }}
               >
                 {/* Card Display */}
@@ -462,3 +461,4 @@ function Home() {
 }
 
 export default Home;
+
