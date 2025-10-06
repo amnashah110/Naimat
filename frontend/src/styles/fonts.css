@@ -1,0 +1,43 @@
+@font-face {
+  font-family: "Significent";
+  src: url("./src/styles/fonts/Significent .otf") format("opentype"),
+    url("./src/styles/fonts/Significent .ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Gandhara";
+  src: url("./src/styles/fonts/Gandhara Suls Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Qalam";
+  src: url("/src/styles/fonts/AlQalam Taj Nastaleeq Regular.ttf")
+    format("truetype");
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* ✅ Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track (background of scrollbar) */
+::-webkit-scrollbar-track {
+  background: #1a1a1a; /* dark base */
+  border-radius: 10px;
+}
+
+/* Handle (scroll thumb) */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #e2d7a0, #c8b870);
+  border-radius: 10px;
+  border: 2px solid #1a1a1a; /* gives subtle depth */
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #f5e9b4, #e2d7a0);
+}
