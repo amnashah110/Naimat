@@ -185,7 +185,7 @@ function Home() {
                   top: "20px",
                   margin: "-30px 0 25px 0",
                   padding: "0",
-                  height: "60vh",
+                  height: "300px",
                   maxHeight: "200px",
                 }}
               >
@@ -461,6 +461,7 @@ function Home() {
 }
 
 export default Home;
+
 
 
 
