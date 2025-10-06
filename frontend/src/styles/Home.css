@@ -34,7 +34,7 @@
   position: absolute;
   left: 28%;
   margin-top: -2.5rem;
-  font-family: "Gandhara";
+  font-family: "Qalam";
   font-size: 8rem;
   background: -webkit-linear-gradient(#fcf9ee, #f0e3a6);
   -webkit-background-clip: text;
@@ -503,3 +503,4 @@
     row-gap: 2rem;
   }
 }
+
