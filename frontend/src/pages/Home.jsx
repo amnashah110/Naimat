@@ -15,17 +15,17 @@ function Home() {
     {
       id: 1,
       image: one,
-      text: "Connecting surplus food to those in need, reducing waste and nourishing communities.",
+      text: "Connecting surplus food to those in need, reducing waste and nourishing communities",
     },
     {
       id: 2,
       image: two,
-      text: "Empowering donors and NGOs to share blessings through efficient, real-time food redistribution.",
+      text: "Empowering donors and NGOs to share blessings through efficient, real-time food redistribution",
     },
     {
       id: 3,
       image: three,
-      text: "Transforming excess into impact by matching food donations with local demand.",
+      text: "Transforming excess into impact by matching food donations with local demand",
     },
   ];
 
@@ -461,5 +461,6 @@ function Home() {
 }
 
 export default Home;
+
 
 
