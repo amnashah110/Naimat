@@ -1,7 +1,7 @@
 @font-face {
   font-family: "Significent";
-  src: url("./src/styles/fonts/Significent .otf") format("opentype"),
-    url("./src/styles/fonts/Significent .ttf") format("truetype");
+  src: url("./src/styles/fonts/Significent.otf") format("opentype"),
+    url("./src/styles/fonts/Significent.ttf") format("truetype");
 }
 
 @font-face {
@@ -41,3 +41,4 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, #f5e9b4, #e2d7a0);
 }
+
