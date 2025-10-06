@@ -1,24 +1,26 @@
 name: Trigger auto deployment for naimat-ai-service
 
+# When this action will be executed
 on:
+  # Automatically trigger it when changes are detected in the repo
   push:
-    branches: 
-      [ main ]
+    branches: [ main ]
     paths:
       - 'ai-service/**'
       - '.github/workflows/ai-service-AutoDeployTrigger.yml'
+  # Allow manual trigger 
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions: 
-      id-token: write
-      contents: read
+      id-token: write # Required for requesting the OIDC JWT Token
+      contents: read  # Required when GH token is used to authenticate with private repo
 
     steps:
       - name: Checkout to the branch
-        uses: actions/checkout@v4  # Update to latest version
+        uses: actions/checkout@v2
 
       - name: Azure Login
         uses: azure/login@v2
@@ -27,29 +29,17 @@ jobs:
           tenant-id: ${{ secrets.NAIMATAISERVICE_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.NAIMATAISERVICE_AZURE_SUBSCRIPTION_ID }}
 
-      - name: Log in to Azure Container Registry
-        uses: azure/docker-login@v1
-        with:
-          login-server: naimatregistry.azurecr.io
-          username: ${{ secrets.NAIMAT_REGISTRY_USERNAME }}
-          password: ${{ secrets.NAIMAT_REGISTRY_PASSWORD }}
-
-      - name: Build and push container image
-        uses: docker/build-push-action@v6  # Use latest version
-        with:
-          context: ./ai-service
-          file: ./ai-service/Dockerfile
-          push: true
-          tags: naimatregistry.azurecr.io/ai-service:${{ github.sha }}
-
-      - name: Deploy to Azure Container Apps
+      - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
+          appSourcePath: ./ai-service
+          dockerfilePath: Dockerfile
+          registryUrl: naimatregistry.azurecr.io
+          registryUsername: ${{ secrets.NAIMAT_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.NAIMAT_REGISTRY_PASSWORD }}
           containerAppName: naimat-ai-service
           resourceGroup: naimat-dev_group
-          imageToDeploy: naimatregistry.azurecr.io/ai-service:${{ github.sha }}
+          imageToBuild: naimatregistry.azurecr.io/ai-service:${{ github.sha }}
           ingress: external
           targetPort: 80
           trafficWeight: 100
-          envVars: |
-            SCM_DO_BUILD_DURING_DEPLOYMENT=false  # Disable Oryx build
