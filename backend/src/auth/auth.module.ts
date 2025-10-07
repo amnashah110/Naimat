@@ -6,10 +6,14 @@ import { JwtModule } from '@nestjs/jwt';
 import jwtConfig from 'src/auth/config/jwt.config';
 import refreshConfig from 'src/auth/config/refresh.config';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenStrategy } from './strategies/refresh.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
 import { ConfigModule } from '@nestjs/config';
+import googleOauthConfig from './config/google-oauth.config';
+import { GoogleStrategy } from './strategies/google-oauth.strategy';
+import { EmailService } from './strategies/passwordless-auth/services/email.service';
+import { OtpService } from './strategies/passwordless-auth/services/otp.service';
+import emailConfig from './config/email.config';
 
 @Module({
   controllers: [AuthController],
@@ -18,13 +22,19 @@ import { ConfigModule } from '@nestjs/config';
     AuthService,
     JwtStrategy,
     RefreshTokenStrategy,
-    {provide: APP_GUARD, useClass: JwtAuthGuard}],
+    LocalStrategy,
+    GoogleStrategy,
+    EmailService,
+    OtpService
+    ], 
 
   imports: [
     UserModule,
     JwtModule.registerAsync(jwtConfig.asProvider()),
     ConfigModule.forFeature(jwtConfig),
-    ConfigModule.forFeature(refreshConfig)
+    ConfigModule.forFeature(refreshConfig),
+    ConfigModule.forFeature(googleOauthConfig),
+    ConfigModule.forFeature(emailConfig),
   ],
 })
 export class AuthModule {}

@@ -31,4 +31,7 @@ export class User
 
     @Column({type: "timestamp", default: () => "CURRENT_TIMESTAMP"})
     timestamp: Date;
+
+    @Column({default: "Email"})
+    auth_provider: string;
 }

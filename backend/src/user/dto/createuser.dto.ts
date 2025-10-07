@@ -29,4 +29,7 @@ export class CreateUserDto {
 
   @IsEnum(['donor', 'recipient', 'volunteer'])
   role: string;
+
+  @IsString()
+  auth_provider: string;
 }
