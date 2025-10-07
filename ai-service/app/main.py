@@ -9,6 +9,10 @@ app = FastAPI()
 def read_root():
 	return {"message": "Hello, World!"}
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 app.include_router(upload_image_router)
 app.include_router(predict_expiry_router)
 app.include_router(categorize_food_router)
