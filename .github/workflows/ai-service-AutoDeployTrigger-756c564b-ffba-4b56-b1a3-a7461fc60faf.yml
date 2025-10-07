@@ -2,23 +2,21 @@ name: Trigger auto deployment for ai-service
 
 # When this action will be executed
 on:
-  # Automatically trigger it when detected changes in repo
+  # Automatically trigger it when changes are detected in the repo
   push:
-    branches: 
-      [ main ]
+    branches: [ main ]
     paths:
-    - '**'
-    - '.github/workflows/ai-service-AutoDeployTrigger-756c564b-ffba-4b56-b1a3-a7461fc60faf.yml'
-
+      - 'ai-service/**'
+      - '.github/workflows/ai-service-AutoDeployTrigger-756c564b-ffba-4b56-b1a3-a7461fc60faf.yml'
   # Allow manual trigger 
-  workflow_dispatch:      
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions: 
-      id-token: write #This is required for requesting the OIDC JWT Token
-      contents: read #Required when GH token is used to authenticate with private repo
+      id-token: write # Required for requesting the OIDC JWT Token
+      contents: read  # Required when GH token is used to authenticate with private repo
 
     steps:
       - name: Checkout to the branch
@@ -27,23 +25,21 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AISERVICE_AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AISERVICE_AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AISERVICE_AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.NAIMATAISERVICE_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.NAIMATAISERVICE_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.NAIMATAISERVICE_AZURE_SUBSCRIPTION_ID }}
 
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
-          registryUrl: 
-          registryUsername: ${{ secrets.AISERVICE_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.AISERVICE_REGISTRY_PASSWORD }}
-          containerAppName: ai-service
+          appSourcePath: ./ai-service
+          dockerfilePath: Dockerfile
+          registryUrl: naimatregistry.azurecr.io
+          registryUsername: ${{ secrets.NAIMAT_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.NAIMAT_REGISTRY_PASSWORD }}
+          containerAppName: naimat-ai-service
           resourceGroup: naimat-dev_group
-          imageToBuild: default/[parameters('containerAppName')]:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
-
-
+          imageToBuild: naimatregistry.azurecr.io/ai-service:${{ github.sha }}
+          ingress: external
+          targetPort: 80
+          trafficWeight: 100
