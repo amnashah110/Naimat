@@ -24,7 +24,7 @@
   font-weight: 900;
   color: #eadbb8;
   margin: 0;
-  font-family: "Significent";
+  font-family: "Arizonia";
 }
 
 .form-body {
@@ -42,19 +42,6 @@
   grid-template-columns: 1fr;
   margin-left: 5%;
   margin-top: 3rem;
-}
-
-input:focus,
-select:focus {
-  box-shadow: inset 2px 2px 4px #121212, inset -2px -2px 4px #3a3a3a,
-    0 0 10px rgba(226, 215, 160, 0.5);
-  color: #e2d7a0;
-  border-color: #e2d7a0;
-}
-
-select option {
-  background-color: #000;
-  color: #ffffff;
 }
 
 .form-left {

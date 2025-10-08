@@ -90,11 +90,10 @@ const Navbar = () => {
         />
         <p
           style={{
-            fontFamily: "Significent",
+            fontFamily: "Arizonia",
             color: "rgb(251, 243, 187)",
-            fontSize: isFullScreen ? "3rem" : "2rem",
-            letterSpacing: "1px",
-            textShadow: "1px 1px 1px rgba(13, 39, 59, 0.57)",
+            fontSize: isFullScreen ? "3.5rem" : "3rem",
+            textShadow: "0px 0px 15px rgba(253, 253, 211, 0.79)",
             margin: 0,
           }}
         >
