@@ -7,7 +7,7 @@ import Logo from "../assets/Logo.png";
 import one from "../assets/IMG_9074.PNG";
 import two from "../assets/IMG_9075.PNG";
 import three from "../assets/IMG_9077.PNG";
-import google from "../assets/google.PNG";
+import google from "../assets/google.png";
 import { Eye, EyeOff } from "lucide-react";
 
 function Home() {
@@ -380,4 +380,5 @@ function Home() {
 }
 
 export default Home;
+
 
