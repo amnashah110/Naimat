@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
     permissions:
       contents: read # required for checkout
 
@@ -76,3 +78,4 @@ jobs:
         run: |
           echo "Files deployed to Azure:"
           ls -R ./backend
+
