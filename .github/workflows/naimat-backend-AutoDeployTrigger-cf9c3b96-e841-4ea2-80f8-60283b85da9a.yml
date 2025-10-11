@@ -1,28 +1,24 @@
 name: Trigger auto deployment for naimat-backend
 
-# When this action will be executed
 on:
-  # Automatically trigger it when detected changes in repo
   push:
     branches: 
-      [ main ]
+      - main
     paths:
-    - '**'
-    - '.github/workflows/naimat-backend-AutoDeployTrigger-cf9c3b96-e841-4ea2-80f8-60283b85da9a.yml'
-
-  # Allow manual trigger 
-  workflow_dispatch:      
+      - '**'
+      - '.github/workflows/naimat-backend-AutoDeployTrigger-cf9c3b96-e841-4ea2-80f8-60283b85da9a.yml'
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions: 
-      id-token: write #This is required for requesting the OIDC JWT Token
-      contents: read #Required when GH token is used to authenticate with private repo
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout to the branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Azure Login
         uses: azure/login@v2
@@ -34,16 +30,11 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
-          registryUrl: 
-          registryUsername: ${{ secrets.NAIMATBACKEND_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.NAIMATBACKEND_REGISTRY_PASSWORD }}
+          appSourcePath: ./backend
+          dockerfilePath: Dockerfile
+          registryUrl: naimatregistry.azurecr.io
+          registryUsername: ${{ secrets.NAIMAT_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.NAIMAT_REGISTRY_PASSWORD }}
           containerAppName: naimat-backend
           resourceGroup: naimat-dev_group
-          imageToBuild: default/[parameters('containerAppName')]:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
-
-
+          imageToBuild: naimatregistry.azurecr.io/naimat-backend:${{ github.sha }}
