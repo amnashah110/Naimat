@@ -1,23 +1,36 @@
-# Use official Node.js image (lightweight Alpine version)
-FROM node:20-alpine
+# 1️⃣ Use an official Node.js runtime as a parent image
+FROM node:20-alpine AS builder
 
-# Set working directory
-WORKDIR /app
+# 2️⃣ Set the working directory
+WORKDIR /usr/src/app
 
-# Copy package files first (for efficient Docker caching)
+# 3️⃣ Copy package.json and lock file
 COPY package*.json ./
 
-# Install dependencies (production only)
-RUN npm ci --only=production
+# 4️⃣ Install dependencies
+RUN npm ci
 
-# Copy the full source code
+# 5️⃣ Copy source code
 COPY . .
 
-# Build the NestJS project (compiles TypeScript → JavaScript in /dist)
+# 6️⃣ Build the NestJS app
 RUN npm run build
 
-# Expose the NestJS default port
+# 7️⃣ Create a smaller image for production
+FROM node:20-alpine AS runner
+
+WORKDIR /usr/src/app
+
+# Copy only necessary files from builder
+COPY --from=builder /usr/src/app/package*.json ./
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+
+# Expose NestJS port
 EXPOSE 3000
 
-# Start the app in production mode
-CMD ["npm", "run", "start:prod"]
+# Set environment variable for NestJS
+ENV NODE_ENV=production
+
+# Start the application
+CMD ["node", "dist/main.js"]
