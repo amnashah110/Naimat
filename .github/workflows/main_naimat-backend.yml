@@ -49,9 +49,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.__clientidsecretname__ }}
-          tenant-id: ${{ secrets.__tenantidsecretname__ }}
-          subscription-id: ${{ secrets.__subscriptionidsecretname__ }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F1417807F7A648709D5699F400751AD6 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_75BC4F5940BD4EBFA4209CBF1502F225 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3AF9ECA21C8D499FBBCA8E0B1C512D6D }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
@@ -60,3 +60,4 @@ jobs:
           app-name: 'naimat-backend'
           slot-name: 'Production'
           package: .
+
