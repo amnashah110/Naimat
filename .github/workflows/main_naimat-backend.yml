@@ -8,29 +8,41 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Changed to ubuntu-latest for better Node.js compatibility
     permissions:
       contents: read
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('./backend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install dependencies and build
         working-directory: ./backend
         run: |
           npm install
           npm run build
+          npm run test # Made tests mandatory; adjust if optional
 
-      - name: Upload build artifact
+      - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ./backend  # includes dist and package.json
+          path: |
+            ./backend/dist
+            ./backend/package.json
+            ./backend/package-lock.json
+          # Excludes node_modules and other unnecessary files
 
   deploy:
     runs-on: ubuntu-latest
@@ -38,12 +50,15 @@ jobs:
     permissions:
       id-token: write
       contents: read
-
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
+
+      - name: List artifact contents
+        run: ls -R
+        working-directory: .
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -58,4 +73,9 @@ jobs:
         with:
           app-name: 'naimat-backend'
           slot-name: 'Production'
-          package: ./backend/dist
+          package: ./dist # Adjust based on your build output
+          app-settings: |
+            [
+              {"name": "NODE_ENV", "value": "production"},
+              {"name": "PORT", "value": "8080"}
+            ]
