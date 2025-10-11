@@ -27,7 +27,7 @@ COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 
 # Expose NestJS port
-EXPOSE 3000
+EXPOSE 80
 
 # Set environment variable for NestJS
 ENV NODE_ENV=production
