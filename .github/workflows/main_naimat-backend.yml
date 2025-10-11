@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Changed to ubuntu-latest for better Node.js compatibility
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
@@ -32,7 +32,7 @@ jobs:
         run: |
           npm install
           npm run build
-          npm run test # Made tests mandatory; adjust if optional
+          npm run test # Remove if tests are optional
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -42,7 +42,7 @@ jobs:
             ./backend/dist
             ./backend/package.json
             ./backend/package-lock.json
-          # Excludes node_modules and other unnecessary files
+            !./backend/node_modules
 
   deploy:
     runs-on: ubuntu-latest
@@ -60,6 +60,10 @@ jobs:
         run: ls -R
         working-directory: .
 
+      - name: Install production dependencies
+        run: npm install --production
+        working-directory: .
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -73,9 +77,24 @@ jobs:
         with:
           app-name: 'naimat-backend'
           slot-name: 'Production'
-          package: ./dist # Adjust based on your build output
-          app-settings: |
-            [
-              {"name": "NODE_ENV", "value": "production"},
-              {"name": "PORT", "value": "8080"}
-            ]
+          package: .
+          startup-command: 'node dist/main' # Use production start command
+
+      - name: Set Azure Web App settings
+        uses: azure/CLI@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az webapp config appsettings set \
+              --name naimat-backend \
+              --resource-group <your-resource-group> \
+              --settings \
+                NODE_ENV="production" \
+                PORT="8080"
+            az webapp config set \
+              --name naimat-backend \
+              --resource-group <your-resource-group> \
+              --linux-fx-version "NODE|20"
+            az webapp restart \
+              --name naimat-backend \
+              --resource-group <your-resource-group>
