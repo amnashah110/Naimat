@@ -1,7 +1,7 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+# Deploy NestJS backend to Azure Web App
+# Docs: https://github.com/Azure/webapps-deploy
 
-name: Build and deploy Node.js app to Azure Web App - naimat-backend
+name: Build and deploy Node.js (NestJS) app to Azure Web App - naimat-backend
 
 on:
   push:
@@ -13,42 +13,42 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # Required for actions/checkout
+      contents: read # required for checkout
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js version
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
 
-      - name: Install dependencies and build project
+      - name: Install dependencies and build
         working-directory: ./backend
         run: |
-          npm install
+          npm ci
           npm run build
 
-      - name: Upload artifact for deployment job
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
-          path: ./backend/dist
+          name: backend-build
+          path: ./backend
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write # Required for requesting the JWT
-      contents: read # Required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: node-app
-          path: ./backend/dist
+          name: backend-build
+          path: ./backend
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -58,14 +58,21 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_DA1AE3E788564046B79E12DBA2CD411A }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'naimat-backend'
           slot-name: 'Production'
-          package: ./backend/dist
+          package: ./backend
 
-      - name: Verify deployment files
+      - name: Set startup command (for NestJS)
         run: |
-          echo "Deployment package contents:"
-          ls -R ./backend/dist
+          echo "Configuring Azure startup command..."
+          az webapp config set \
+            --resource-group naimat-dev_group \
+            --name naimat-backend \
+            --startup-file "npm run start:prod"
+
+      - name: Verify deployed files
+        run: |
+          echo "Files deployed to Azure:"
+          ls -R ./backend
