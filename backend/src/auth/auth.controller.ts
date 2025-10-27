@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from 'src/user/dto/createuser.dto';
+import { LegacyCreateUserDto } from 'src/user/dto/legacycreateuser.dto';
 import { Public } from './decorators/public.decorator';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth/google-auth.guard';
@@ -26,7 +26,7 @@ export class AuthController {
 
   @Public()
   @Post('signup')
-  async signup(@Body() body: CreateUserDto)
+  async signup(@Body() body: LegacyCreateUserDto)
   {
     return await this.authService.signup(body);
   }
@@ -41,14 +41,15 @@ export class AuthController {
 
   @Public()
   @UseGuards(GoogleAuthGuard)
-  @Get('google/login')
-  async googleLogin()
+  @Get('google/verify')
+  async googleVerify()
   {
 
   }
 
   @Public()
   @UseGuards(GoogleAuthGuard)
+  @HttpCode(202)
   @Get('google/callback')
   async googleRedirect(@Req() req)
   {
@@ -70,17 +71,16 @@ export class AuthController {
 
   @Public()
   @Post('passwordless/verifycode')
+  @HttpCode(202)
   async verifyCode(@Body() dto: { email: string; code: string }) {
     const { email, code } = dto;
     await this.otpService.verify(email, code, 5); // 5 attempts max
 
     // Create/find user, issue tokens
     const user = await this.authService.userinfofromemail(email);
-    const tokens = await this.authService.signTokens(user.id);
+    return await this.authService.signTokens(user.id);
 
     // In production, set refresh token in HttpOnly Secure cookie:
     // res.cookie('refresh_token', tokens.refresh, { httpOnly: true, secure: true, sameSite: 'lax', maxAge: ... })
-
-    return { id: user.id, jwtToken: tokens.jwt, refreshToken: tokens.refresh };
   }
 }

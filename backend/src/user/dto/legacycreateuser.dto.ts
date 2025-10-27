@@ -1,6 +1,6 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Length, Matches } from 'class-validator';
 
-export class CreateUserDto {
+export class LegacyCreateUserDto {
   @IsString()
   @IsNotEmpty()
   @Length(1, 100)

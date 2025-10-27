@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { verify, hash } from 'argon2';
 import refreshConfig from 'src/auth/config/refresh.config';
 import { User } from 'src/entities/user.entity';
-import { CreateUserDto } from 'src/user/dto/createuser.dto';
+import { LegacyCreateUserDto } from 'src/user/dto/legacycreateuser.dto';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -20,12 +20,12 @@ export class AuthService
     {
         return {
             id,
-            jwt: this.jwtService.sign({ sub: id }),
-            refresh: this.jwtService.sign({ sub: id }, this.refreshTokenConfig),
+            jwtToken: this.jwtService.sign({ sub: id }),
+            refreshToken: this.jwtService.sign({ sub: id }, this.refreshTokenConfig),
         };
     }
 
-    async signup(user: CreateUserDto)
+    async signup(user: LegacyCreateUserDto)
     {
         const password_hash = await hash(user.password);
         const { password, ...restuser } = user;
@@ -69,9 +69,7 @@ export class AuthService
     async validateGoogleUser(googleUser)
     {
         const user = await this.userService.findbyemail(googleUser.email);
-
         if (!user) return await this.userService.createUser(googleUser);
-
         if (user.auth_provider !== 'Google') throw new UnauthorizedException("Error: Invalid authentication provider!");
 
         return user;
