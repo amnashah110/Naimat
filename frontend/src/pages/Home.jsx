@@ -238,27 +238,6 @@ function Home() {
                 {/* STEP 1: Login Option */}
                 {step === 1 && (
                   <>
-                    <div className="role-toggle">
-                      <button
-                        className={role === "volunteer" ? "active" : ""}
-                        onClick={() => setRole("volunteer")}
-                      >
-                        Volunteer
-                      </button>
-                      <button
-                        className={role === "recipient" ? "active" : ""}
-                        onClick={() => setRole("recipient")}
-                      >
-                        Recipient
-                      </button>
-                      <button
-                        className={role === "donor" ? "active" : ""}
-                        onClick={() => setRole("donor")}
-                      >
-                        Donor
-                      </button>
-                    </div>
-
                     <button type="button" className="google-btn">
                       <img src={google} alt="Google" />
                       Log In with Google
@@ -274,22 +253,6 @@ function Home() {
                       }}
                     >
                       <input type="text" placeholder="Email or Username" />
-                      <div className="password-field">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Password"
-                        />
-                        <span
-                          className="eye-icon"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? (
-                            <EyeOff size={18} />
-                          ) : (
-                            <Eye size={18} />
-                          )}
-                        </span>
-                      </div>
                       <button type="submit" className="submit-btn">
                         Next →
                       </button>
@@ -465,5 +428,3 @@ function Home() {
 }
 
 export default Home;
-
-
