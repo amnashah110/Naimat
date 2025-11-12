@@ -1,6 +1,7 @@
 import { React, useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import "../styles/Form.css";
+import headerPNG from "../assets/IMG_9076.PNG";
 
 function DonationForm() {
   const [isFullScreen, setIsFullScreen] = useState(window.innerWidth >= 1024);
@@ -9,7 +10,7 @@ function DonationForm() {
   return (
     <div className="form">
       <Navbar />
-
+      <img className="img" src={headerPNG} alt="Header decoration" />
       <div className="form-header">
         <div className="form-title">Donation Form</div>
       </div>
