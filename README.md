@@ -47,7 +47,7 @@ The system leverages **Microsoft Azure services** to provide **scalability, reli
 ---
 
 ## ⚙️ Tech Stack
-- **Frontend:** React (Vite + Tailwind), deployed on **Azure Static Web Apps**  
+- **Frontend:** React (Vite), deployed on **Azure Static Web Apps**  
 - **Backend:** NestJS (monolithic), deployed on **Azure Container Apps**  
 - **AI Service:** FastAPI for food categorization + semantic search, integrated with **Azure AI Vision** and **Azure AI Search**  
 - **Storage:** Azure Blob Storage, Azure Cosmos DB  
