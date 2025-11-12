@@ -110,7 +110,7 @@
 }
 
 .subtitle {
-  font-family: "Poppins";
+  font-family: "DM Sans";
   font-size: 3.1vw;
   color: #e2d7a0;
   animation: slideIn 3s ease-in-out;
@@ -128,7 +128,7 @@
 }
 
 .liner-text {
-  font-family: "Poppins";
+  font-family: "DM Sans";
   font-weight: bold;
   color: rgb(255, 251, 239);
   overflow: hidden; 
@@ -175,7 +175,7 @@
   font-size: 5rem;
   margin-bottom: 0;
   color: #ebdfa3;
-  text-shadow: 1px 1px 5px rgba(243, 240, 220, 0.829);
+  text-shadow: 1px 1px 2px rgba(243, 240, 220, 0.829);
   margin: 0;
   width: 100%; /* Ensure title spans full width */
 }
@@ -212,7 +212,7 @@
 
 .card-text {
   text-align: center;
-  font-family: "Poppins";
+  font-family: "DM Sans";
   font-weight: bold;
   font-size: 1.5rem; /* Responsive font size */
   color: rgb(245, 226, 187);
@@ -249,7 +249,7 @@
 
 .joinus-text {
   text-align: center;
-  font-family: "Poppins";
+  font-family: "DM Sans";
   font-size: clamp(16px, 3vw, 20px); /* Responsive font size */
   color: rgb(245, 226, 187);
   text-shadow: 2px 2px 2px rgb(62, 62, 62);
@@ -272,7 +272,7 @@
   margin: 0 auto;
   text-align: center;
   max-width: 140px;
-  font-family: "Poppins";
+  font-family: "DM Sans";
   transition: all 0.4s ease-in-out;
 }
 
@@ -287,7 +287,7 @@
   margin: 0 auto;
   text-align: center;
   max-width: 140px;
-  font-family: "Poppins";
+  font-family: "DM Sans";
   font-weight: bold;
   transition: all 0.4s ease-in-out;
 }
@@ -386,7 +386,7 @@
   border-radius: 8px;
   border: none;
   outline: none;
-  font-family: "Poppins";
+  font-family: "DM Sans";
 }
 
 .submit-btn {
@@ -423,7 +423,7 @@
   justify-content: center;
   gap: 10px;
   width: 100%;
-  font-family: "Poppins";
+  font-family: "DM Sans";
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -448,7 +448,7 @@
   border-radius: 8px;
   border: none;
   outline: none;
-  font-family: "Poppins";
+  font-family: "DM Sans";
 }
 
 .eye-icon {
@@ -467,7 +467,7 @@
 .signup-subtext {
   color: #f5e58f;
   text-align: center;
-  font-family: "Poppins";
+  font-family: "DM Sans";
   margin: 10px 0 25px;
 }
 
@@ -487,7 +487,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: "Poppins";
+  font-family: "DM Sans";
 }
 
 .choice-btn:hover {
@@ -500,7 +500,7 @@
   text-align: center;
   margin-top: 15px;
   color: #e2d7a0;
-  font-family: "Poppins";
+  font-family: "DM Sans";
   cursor: pointer;
   transition: 0.3s ease;
 }

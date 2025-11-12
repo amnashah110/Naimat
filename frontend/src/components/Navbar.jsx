@@ -12,20 +12,6 @@ const Navbar = () => {
 
   const navLinks = [
     { to: "/dashboard", label: "Dashboard" },
-    {
-      to:
-        userRole === "donor"
-          ? "/donation-form"
-          : userRole === "recipient"
-          ? "/request-help-form"
-          : "/",
-      label:
-        userRole === "donor"
-          ? "Donation Form"
-          : userRole === "recipient"
-          ? "Request Help Form"
-          : "",
-    },
     { to: "/profile", label: "Profile" },
     { to: "/", label: "Logout" },
   ];
@@ -41,7 +27,7 @@ const Navbar = () => {
       fontSize: "1.1em",
       cursor: "pointer",
       textDecoration: "none",
-      fontFamily: "Poppins",
+      fontFamily: "DM Sans",
     };
   };
 
@@ -107,7 +93,7 @@ const Navbar = () => {
             display: "flex",
             alignItems: "center",
             gap: "2vw",
-            fontFamily: "Poppins",
+            fontFamily: "DM Sans",
             fontWeight: "bold",
             marginRight: "4%",
           }}

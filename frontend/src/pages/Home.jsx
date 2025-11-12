@@ -1,6 +1,5 @@
 import { React, useState, useEffect } from "react";
 import "../styles/Home.css";
-import "../styles/fonts.css";
 import "../styles/animations.css";
 import headerPNG from "../assets/IMG_9076.PNG";
 import Logo from "../assets/Logo.png";
