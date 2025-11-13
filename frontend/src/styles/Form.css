@@ -20,12 +20,14 @@
 }
 
 .form-title {
-  font-size: 4rem;
+  font-size: 250%;
   font-weight: 900;
   color: #eadbb8;
   margin: 0;
   font-family: "Arizonia";
 }
+
+
 
 .form-body {
   border: dashed 5px rgba(100, 100, 100, 0.823);

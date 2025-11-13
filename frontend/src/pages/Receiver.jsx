@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import Navbar from "../components/Navbar";
-import headerPNG from "../assets/IMG_9076.PNG";
 import "../styles/Form.css";
 import "../styles/receiver.css";
+import calendar from "../assets/calendar-days-solid-full.svg";
+import pin from "../assets/location-dot-solid-full.svg";
 
 function Receiver() {
   const donationsData = [
@@ -43,13 +44,10 @@ function Receiver() {
   });
 
   return (
-    <div className="form">
+    <div className="form" style={{
+      paddingTop: "80px",
+    }}>
       <Navbar />
-      <img className="img" src={headerPNG} alt="Header decoration" />
-
-      <div className="form-header">
-        <div className="form-title">Available Donations</div>
-      </div>
 
       <div className="donations-body">
         <div className="filter-sort-bar">
@@ -81,20 +79,36 @@ function Receiver() {
                 className="donation-card"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="donation-glow"></div>
-                <div className="donation-content">
                   <div className="donation-info">
                     <h3 className="donation-type">{donation.type}</h3>
-                    <p className="donation-date">
-                      📅 {new Date(donation.date).toLocaleDateString()}
-                    </p>
-                    <p className="donation-address">📍 {donation.address}</p>
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}>
+                      <img src={calendar} style={{
+                        width: "6%",
+                      }}/>
+                      <div className="donation-date">
+                      {new Date(donation.date).toLocaleDateString()}
+                    </div>
+                    </div>
+
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}>
+                      <img src={pin} style={{
+                        width: "6%",
+                      }}/>
+                      <div className="donation-address">{donation.address}</div>
+                    </div>
                   </div>
 
                   <div className="donation-actions">
                     <button className="accept-btn">Accept Donation</button>
                     <button className="details-btn">View Details</button>
-                  </div>
                 </div>
               </div>
             ))}
