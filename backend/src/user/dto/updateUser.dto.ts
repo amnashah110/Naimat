@@ -30,6 +30,6 @@ export class UpdateUserDto {
   phone_number?: string;
 
   @IsOptional()
-  @IsEnum(['donor', 'recipient', 'volunteer'])
+  @IsEnum(['donor', 'recipient', 'volunteer', 'admin'])
   role?: string;
 }

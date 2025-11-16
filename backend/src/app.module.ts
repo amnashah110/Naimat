@@ -10,6 +10,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
+import { FoodpostModule } from './foodpost/foodpost.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { CacheModule } from '@nestjs/cache-manager';
       max: 100, // maximum number of items in cache
     }),
     AuthModule,
-    UserModule
+    UserModule,
+    FoodpostModule
   ],
   controllers: [AppController],
   providers: [
