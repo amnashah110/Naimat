@@ -54,7 +54,7 @@ const Navbar = () => {
         alignItems: "center",
         padding: "0.5rem .5rem",
         boxShadow: "0 5px 20px rgba(20, 20, 20, 0.95)",
-        zIndex: 5000,
+        zIndex: 1000,
       }}
     >
       
@@ -78,7 +78,7 @@ const Navbar = () => {
           style={{
             fontFamily: "Arizonia",
             color: "rgb(251, 243, 187)",
-            fontSize: isFullScreen ? "3.5rem" : "3rem",
+            fontSize: "3rem",
             textShadow: "0px 0px 15px rgba(253, 253, 211, 0.79)",
             margin: 0,
           }}
