@@ -78,7 +78,7 @@ const Navbar = () => {
           style={{
             fontFamily: "Arizonia",
             color: "rgb(251, 243, 187)",
-            fontSize: "3rem",
+            fontSize: isFullScreen ? "3.5rem" : "3rem",
             textShadow: "0px 0px 15px rgba(253, 253, 211, 0.79)",
             margin: 0,
           }}
