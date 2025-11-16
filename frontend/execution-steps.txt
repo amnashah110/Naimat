@@ -1,3 +1,0 @@
-cd frontend
-npm i
-npm react-router-dom react-icons lucide-react
