@@ -83,6 +83,7 @@
   z-index: 1000;
   animation: fadeImage 1s;
   opacity: 0.2;
+  pointer-events: none;
 }
 
 .title-grid{

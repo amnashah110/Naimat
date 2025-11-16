@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import "../styles/Form.css";
 import headerPNG from "../assets/IMG_9076.PNG";
 import upload from "../assets/upload-solid-full.svg";
+import { useNavigate } from "react-router-dom";
 
 function DonationForm() {
   const [isFullScreen, setIsFullScreen] = useState(window.innerWidth >= 1024);
@@ -10,6 +11,8 @@ function DonationForm() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [contactInfo, setContactInfo] = useState("");
   const [contactError, setContactError] = useState("");
+
+  const navigate = useNavigate();
 
   const validateContact = (value) => {
     setContactInfo(value);
@@ -53,7 +56,6 @@ function DonationForm() {
               <li>Provide accurate food type details.</li>
               <li>Mention correct quantity (in kg or meal boxes).</li>
               <li>Ensure pickup address is complete and clear.</li>
-              <li>Select an appropriate pickup time slot.</li>
               <li>Provide a working phone number or email for contact.</li>
               <li>
                 Use "Special Instructions" for any important notes (optional).
@@ -74,6 +76,19 @@ function DonationForm() {
           </p>
 
           <div className="form-left">
+
+            <p>DONATION TITLE</p>
+            <input
+              type="text"
+              id="donationcaption"
+              name="donationcaption"
+              placeholder="e.g., Burger Meal, Chicken Biryani etc."
+              required
+              style={{
+                marginBottom: "1rem",
+              }}
+            />
+
             <p>FOOD TYPE</p>
             <select
               id="foodType"
@@ -183,8 +198,7 @@ function DonationForm() {
               placeholder="e.g., Keep refrigerated, Spicy food"
             />
 
-            {foodType !== "packaged" && (
-              <>
+            
                 <p>UPLOAD PICTURE</p>
                 <label
                   htmlFor="pictureUpload"
@@ -222,6 +236,15 @@ function DonationForm() {
                     display: "none",
                   }}
                 />
+
+            <button type="submit" className="submit-button"
+            onClick={()=> {
+              navigate("/dashboard")
+            }}>
+              Submit Donation
+            </button>
+
+            
                 {uploadedFile && (
                   <p
                     style={{
@@ -234,12 +257,6 @@ function DonationForm() {
                     ✓ {uploadedFile.name}
                   </p>
                 )}
-              </>
-            )}
-
-            <button type="submit" className="submit-button">
-              Submit Donation
-            </button>
           </div>
         </div>
       </section>
