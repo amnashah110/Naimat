@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import "../styles/Profile.css";
 import headerPNG from "../assets/IMG_9076.PNG";
+import { useUser } from "../context/UserContext";
 import {
   LineChart,
   Line,
@@ -19,36 +20,78 @@ import {
 } from "recharts";
 
 function Profile() {
-  const [user, setUser] = useState({
-    fullName: "Ahmed Hassan",
-    username: "ahmed_hassan_99",
-    email: "ahmed.hassan@email.com",
-    phone: "03001234567",
-    city: "Karachi",
-    age: 28,
-  });
-
+  const { user, loading: userLoading } = useUser();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState(user);
-  const [emailVerificationRequired, setEmailVerificationRequired] =
-    useState(false);
+  const [editData, setEditData] = useState({});
+  const [emailVerificationRequired, setEmailVerificationRequired] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
 
-  // Data for charts
-  const donationsData = [
-    { month: "Jan", donations: 4, meals: 6, volunteered: 3 },
-    { month: "Feb", donations: 5, meals: 8, volunteered: 4 },
-    { month: "Mar", donations: 7, meals: 10, volunteered: 5 },
-    { month: "Apr", donations: 6, meals: 9, volunteered: 4 },
-    { month: "May", donations: 8, meals: 12, volunteered: 6 },
-    { month: "Jun", donations: 9, meals: 14, volunteered: 7 },
-  ];
+  useEffect(() => {
+    if (user) {
+      setEditData(user);
+      fetchDonationStats();
+    }
+  }, [user]);
 
-  const donationTypeData = [
-    { name: "Cooked", value: 35, color: "#e2d7a0" },
-    { name: "Packaged", value: 28, color: "#90dd90" },
-    { name: "Fresh Raw", value: 37, color: "#d490ff" },
-  ];
+  const fetchDonationStats = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
+
+      console.log("Fetching donation stats...");
+
+      const response = await fetch("http://localhost:3000/donation/user/stats", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Stats fetch error:", errorData);
+        throw new Error(errorData.message || "Failed to fetch stats");
+      }
+
+      const data = await response.json();
+      console.log("Donation stats received:", data);
+      setStats(data);
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transform stats data for charts
+  const getDonationsData = () => {
+    if (!stats || !stats.monthlyData) return [];
+    
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months.map(month => ({
+      month,
+      donations: stats.monthlyData[month] || 0,
+    }));
+  };
+
+  const getDonationTypeData = () => {
+    if (!stats || !stats.categoryStats) return [];
+    
+    const colors = {
+      cooked: "#e2d7a0",
+      packaged: "#90dd90",
+      raw: "#d490ff",
+    };
+
+    return Object.entries(stats.categoryStats).map(([name, value]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      value,
+      color: colors[name] || "#b8a878",
+    }));
+  };
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
@@ -77,6 +120,31 @@ function Profile() {
     // In a real app, this would call an API to send OTP
   };
 
+  if (userLoading || loading) {
+    return (
+      <div className="profile-container">
+        <Navbar />
+        <div className="profile-content">
+          <p style={{ textAlign: 'center', padding: '50px', color: '#e2d7a0' }}>Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <div className="profile-container">
+        <Navbar />
+        <div className="profile-content">
+          <p style={{ textAlign: 'center', padding: '50px', color: '#ff6b6b' }}>{error || "Please login to view profile"}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const donationsData = getDonationsData();
+  const donationTypeData = getDonationTypeData();
+
   return (
     <div className="profile-container">
       <Navbar />
@@ -85,11 +153,11 @@ function Profile() {
         {/* Profile Header Section */}
         <section className="profile-header">
           <div className="profile-avatar">
-            <div className="avatar-circle">{user.fullName.charAt(0)}</div>
+            <div className="avatar-circle">{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</div>
           </div>
           <div className="profile-info">
-            <h1 className="profile-name">{user.fullName}</h1>
-            <p className="profile-username">@{user.username}</p>
+            <h1 className="profile-name">{user.name || 'User'}</h1>
+            <p className="profile-username">{user.email}</p>
           </div>
         </section>
 
@@ -110,21 +178,10 @@ function Profile() {
                 <label>Full Name</label>
                 <input
                   type="text"
-                  name="fullName"
-                  value={editData.fullName}
+                  name="name"
+                  value={editData.name || ''}
                   onChange={handleEditChange}
                   placeholder="Enter full name"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Username</label>
-                <input
-                  type="text"
-                  name="username"
-                  value={editData.username}
-                  onChange={handleEditChange}
-                  placeholder="Enter username"
                 />
               </div>
 
@@ -134,7 +191,7 @@ function Profile() {
                   <input
                     type="email"
                     name="email"
-                    value={editData.email}
+                    value={editData.email || ''}
                     onChange={handleEditChange}
                     placeholder="Enter email"
                   />
@@ -170,30 +227,6 @@ function Profile() {
                 </div>
               )}
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Phone Number</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={editData.phone}
-                    onChange={handleEditChange}
-                    placeholder="Enter phone number"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>City</label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={editData.city}
-                    onChange={handleEditChange}
-                    placeholder="Enter city"
-                  />
-                </div>
-              </div>
-
               <div className="form-actions">
                 <button
                   type="button"
@@ -218,13 +251,18 @@ function Profile() {
                 <span className="detail-value">{user.email}</span>
               </div>
               <div className="detail-row">
-                <span className="detail-label">Phone Number:</span>
-                <span className="detail-value">{user.phone}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">City:</span>
-                <span className="detail-value">{user.city}</span>
-              </div>
+  <span className="detail-label">Member Since:</span>
+  <span className="detail-value">
+    {user.timestamp
+      ? new Date(user.timestamp).toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        })
+      : ""}
+  </span>
+</div>
+
             </div>
           )}
         </section>
@@ -235,7 +273,7 @@ function Profile() {
 
           {/* Line Chart - Donations Over Time */}
           <div className="chart-container">
-            <h3>Donations & Impact Trend</h3>
+            <h3>Donations Trend</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={donationsData}>
                 <CartesianGrid
@@ -257,25 +295,9 @@ function Profile() {
                   type="monotone"
                   dataKey="donations"
                   stroke="#e2d7a0"
-                  strokeWidth={2}
+                  strokeWidth={3}
                   name="Donations"
-                  dot={{ fill: "#e2d7a0" }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="meals"
-                  stroke="#90dd90"
-                  strokeWidth={2}
-                  name="Meals Received"
-                  dot={{ fill: "#90dd90" }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="volunteered"
-                  stroke="#d490ff"
-                  strokeWidth={2}
-                  name="Times Volunteered"
-                  dot={{ fill: "#d490ff" }}
+                  dot={{ fill: "#e2d7a0", r: 5 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -283,7 +305,7 @@ function Profile() {
 
           {/* Bar Chart - Monthly Comparison */}
           <div className="chart-container">
-            <h3>Monthly Activity</h3>
+            <h3>Monthly Donations</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={donationsData}>
                 <CartesianGrid
@@ -302,12 +324,6 @@ function Profile() {
                 />
                 <Legend wrapperStyle={{ color: "#f2e9b9" }} />
                 <Bar dataKey="donations" fill="#e2d7a0" name="Donations" />
-                <Bar dataKey="meals" fill="#90dd90" name="Meals Received" />
-                <Bar
-                  dataKey="volunteered"
-                  fill="#d490ff"
-                  name="Times Volunteered"
-                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -338,20 +354,22 @@ function Profile() {
           {/* Summary Stats */}
           <div className="stats-grid">
             <div className="stat-card">
-              <div className="stat-number">42</div>
+              <div className="stat-number">{stats?.totalDonations || 0}</div>
               <div className="stat-label">Total Donations</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number">68</div>
-              <div className="stat-label">Meals Received</div>
+              <div className="stat-number">{stats?.activeDonations || 0}</div>
+              <div className="stat-label">Active Donations</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number">23</div>
-              <div className="stat-label">Times Volunteered</div>
+              <div className="stat-number">{stats?.completedDonations || 0}</div>
+              <div className="stat-label">Completed Donations</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number">156</div>
-              <div className="stat-label">People Helped</div>
+              <div className="stat-number">
+                {stats?.categoryStats ? Object.values(stats.categoryStats).reduce((a, b) => a + b, 0) : 0}
+              </div>
+              <div className="stat-label">Total Items</div>
             </div>
           </div>
         </section>

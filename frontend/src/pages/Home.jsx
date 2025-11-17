@@ -8,8 +8,10 @@ import two from "../assets/IMG_9075.PNG";
 import three from "../assets/IMG_9077.PNG";
 import google from "../assets/google.png";
 import { Eye, EyeOff } from "lucide-react";
+import { useUser } from "../context/UserContext";
 
 function Home() {
+  const { refreshUser } = useUser();
   const missionTexts = [
     {
       id: 1,
@@ -33,13 +35,16 @@ function Home() {
   const [showImage, setShowImage] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(window.innerWidth >= 1024);
   const [loginTab, setLoginTab] = useState(false);
-  const [role, setRole] = useState("volunteer");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSignupForm, setShowSignupForm] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [phone, setPhone] = useState("");
   const [step, setStep] = useState(1);
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const nextCard = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % missionTexts.length);
@@ -67,12 +72,139 @@ function Home() {
     if (!loginTab) {
       setShowLoginForm(false);
       setShowSignupForm(false);
-      setRole("volunteer");
       setPhone("");
       setShowPassword(false);
       setShowConfirm(false);
+      setEmail("");
+      setOtp("");
+      setError("");
+      setStep(1);
     }
   }, [loginTab]);
+
+  // Request OTP code
+  const handleRequestOTP = async (emailInput, isSignup = false) => {
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      const response = await fetch("http://localhost:3000/auth/passwordless/requestcode", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          email: emailInput,
+          isSignup: isSignup 
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to send OTP");
+      }
+
+      const data = await response.json();
+      console.log("OTP sent:", data);
+      return true;
+    } catch (err) {
+      console.error("Error sending OTP:", err);
+      setError(err.message || "Failed to send OTP. Please try again.");
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Verify OTP code
+  const handleVerifyOTP = async (emailInput, otpCode, isSignup = false) => {
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      const response = await fetch("http://localhost:3000/auth/passwordless/verifycode", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          email: emailInput, 
+          code: otpCode 
+        }),
+      });
+
+      const data = await response.json();
+
+      // For signup, user might not exist yet - that's okay
+      if (!response.ok) {
+        if (isSignup && data.message?.includes("Email doesn't exist")) {
+          // For signup, OTP is valid but user doesn't exist yet
+          // We'll create the user in step 3
+          console.log("OTP verified for new user signup");
+          return { verified: true, isNewUser: true };
+        }
+        throw new Error(data.message || "Invalid OTP");
+      }
+
+      console.log("Login successful:", data);
+      
+      // Store tokens in localStorage
+      if (data.jwtToken) {
+        localStorage.setItem("access_token", data.jwtToken);
+      }
+      if (data.refreshToken) {
+        localStorage.setItem("refresh_token", data.refreshToken);
+      }
+
+      return { verified: true, isNewUser: false, tokens: data };
+    } catch (err) {
+      console.error("Error verifying OTP:", err);
+      setError(err.message || "Invalid OTP. Please try again.");
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Create new user account
+  const handleSignupUser = async (userData) => {
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      const response = await fetch("http://localhost:3000/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create account");
+      }
+
+      const data = await response.json();
+      console.log("User created successfully:", data);
+      
+      // Store tokens in localStorage
+      if (data.jwt) {
+        localStorage.setItem("access_token", data.jwt);
+      }
+      if (data.refresh) {
+        localStorage.setItem("refresh_token", data.refresh);
+      }
+
+      return data;
+    } catch (err) {
+      console.error("Error creating user:", err);
+      setError(err.message || "Failed to create account. Please try again.");
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="homepage">
@@ -224,7 +356,6 @@ function Home() {
                     setLoginTab(false);
                     setShowSignupForm(false);
                     setShowLoginForm(false);
-                    setRole("volunteer");
                   }}
                 >
                   ← Back
@@ -244,16 +375,29 @@ function Home() {
 
                     <div className="or-divider">OR</div>
 
+                    {error && <p className="error-text" style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
+
                     <form
                       className="signup-form"
-                      onSubmit={(e) => {
+                      onSubmit={async (e) => {
                         e.preventDefault();
-                        setStep(2);
+                        const emailValue = e.target.elements[0].value;
+                        setEmail(emailValue);
+                        
+                        const success = await handleRequestOTP(emailValue, false); // false = login
+                        if (success) {
+                          setStep(2);
+                        }
                       }}
                     >
-                      <input type="text" placeholder="Email or Username" />
-                      <button type="submit" className="submit-btn">
-                        Next →
+                      <input 
+                        type="email" 
+                        placeholder="Email" 
+                        required
+                        disabled={isLoading}
+                      />
+                      <button type="submit" className="submit-btn" disabled={isLoading}>
+                        {isLoading ? "Sending OTP..." : "Next →"}
                       </button>
                     </form>
 
@@ -261,7 +405,7 @@ function Home() {
                       className="back-option"
                       onClick={() => {
                         setShowLoginForm(false);
-                        setRole("volunteer");
+                        setError("");
                       }}
                     >
                       ← Back
@@ -271,26 +415,49 @@ function Home() {
 
                 {/* STEP 2: OTP Verification */}
                 {step === 2 && (
-                  <form
-                    className="signup-form"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      alert("Logged in successfully!");
-                    }}
-                  >
-                    <h3>Enter OTP</h3>
-                    <input
-                      type="text"
-                      placeholder="Enter 6-digit OTP"
-                      maxLength="6"
-                    />
-                    <button type="submit" className="submit-btn">
-                      Verify & Log In
-                    </button>
-                    <p className="back-option" onClick={() => setStep(1)}>
-                      ← Back
-                    </p>
-                  </form>
+                  <>
+                    {error && <p className="error-text" style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
+                    
+                    <form
+                      className="signup-form"
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const result = await handleVerifyOTP(email, otp, false);
+                        
+                        if (result && result.verified) {
+                          alert("Logged in successfully!");
+                          refreshUser(); // Refresh user context
+                          setLoginTab(false);
+                          // Redirect to dashboard or home page
+                          window.location.href = "/dashboard";
+                        }
+                      }}
+                    >
+                      <h3>Enter OTP</h3>
+                      <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '15px' }}>
+                        Code sent to {email}
+                      </p>
+                      <input
+                        type="text"
+                        placeholder="Enter 6-digit OTP"
+                        maxLength="6"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                        required
+                        disabled={isLoading}
+                      />
+                      <button type="submit" className="submit-btn" disabled={isLoading || otp.length !== 6}>
+                        {isLoading ? "Verifying..." : "Verify & Log In"}
+                      </button>
+                      <p className="back-option" onClick={() => {
+                        setStep(1);
+                        setOtp("");
+                        setError("");
+                      }}>
+                        ← Back
+                      </p>
+                    </form>
+                  </>
                 )}
               </>
             ) : (
@@ -307,16 +474,24 @@ function Home() {
 
                     <div className="or-divider">OR</div>
 
+                    {error && <p className="error-text" style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
+
                     <form
                       className="signup-form"
-                      onSubmit={(e) => {
+                      onSubmit={async (e) => {
                         e.preventDefault();
-                        setStep(2);
+                        const emailValue = e.target.elements[0].value;
+                        setEmail(emailValue);
+                        
+                        const success = await handleRequestOTP(emailValue, true); // true = signup
+                        if (success) {
+                          setStep(2);
+                        }
                       }}
                     >
-                      <input type="email" placeholder="Email" required />
-                      <button type="submit" className="submit-btn">
-                        Next →
+                      <input type="email" placeholder="Email" required disabled={isLoading} />
+                      <button type="submit" className="submit-btn" disabled={isLoading}>
+                        {isLoading ? "Sending OTP..." : "Next →"}
                       </button>
                     </form>
 
@@ -324,7 +499,7 @@ function Home() {
                       className="back-option"
                       onClick={() => {
                         setShowSignupForm(false);
-                        setRole("volunteer");
+                        setError("");
                       }}
                     >
                       ← Back
@@ -334,88 +509,90 @@ function Home() {
 
                 {/* STEP 2: OTP */}
                 {step === 2 && (
-                  <form
-                    className="signup-form"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      setStep(3);
-                    }}
-                  >
-                    <h3>Verify OTP</h3>
-                    <input
-                      type="text"
-                      placeholder="Enter 6-digit OTP"
-                      maxLength="6"
-                    />
-                    <button type="submit" className="submit-btn">
-                      Verify
-                    </button>
-                    <p className="back-option" onClick={() => setStep(1)}>
-                      ← Back
-                    </p>
-                  </form>
+                  <>
+                    {error && <p className="error-text" style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
+                    
+                    <form
+                      className="signup-form"
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const result = await handleVerifyOTP(email, otp, true);
+                        
+                        if (result && result.verified) {
+                          // OTP verified, proceed to fill details
+                          setStep(3);
+                        }
+                      }}
+                    >
+                      <h3>Verify OTP</h3>
+                      <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '15px' }}>
+                        Code sent to {email}
+                      </p>
+                      <input
+                        type="text"
+                        placeholder="Enter 6-digit OTP"
+                        maxLength="6"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                        required
+                        disabled={isLoading}
+                      />
+                      <button type="submit" className="submit-btn" disabled={isLoading || otp.length !== 6}>
+                        {isLoading ? "Verifying..." : "Verify"}
+                      </button>
+                      <p className="back-option" onClick={() => {
+                        setStep(1);
+                        setOtp("");
+                        setError("");
+                      }}>
+                        ← Back
+                      </p>
+                    </form>
+                  </>
                 )}
 
                 {/* STEP 3: Fill Details */}
                 {step === 3 && (
-                  <form
-                    className="signup-form"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      alert("User Registered Successfully!");
-                    }}
-                  >
-                    <input type="text" placeholder="Full Name" />
-                    <input type="text" placeholder="Username" />
-                    <select name="city" id="city" required>
-                      <option value="" disabled selected>
-                        Select City
-                      </option>
-                      <option value="karachi">Karachi</option>
-                      <option value="lahore">Lahore</option>
-                      <option value="islamabad">Islamabad</option>
-                      <option value="rawalpindi">Rawalpindi</option>
-                      <option value="faisalabad">Faisalabad</option>
-                      <option value="multan">Multan</option>
-                      <option value="peshawar">Peshawar</option>
-                      <option value="quetta">Quetta</option>
-                      <option value="sialkot">Sialkot</option>
-                      <option value="hyderabad">Hyderabad</option>
-                      <option value="gujranwala">Gujranwala</option>
-                      <option value="bahawalpur">Bahawalpur</option>
-                      <option value="sukkur">Sukkur</option>
-                      <option value="abbottabad">Abbottabad</option>
-                      <option value="mirpur">Mirpur</option>
-                    </select>
-                    <input type="number" placeholder="Age" />
+                  <>
+                    {error && <p className="error-text" style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
+                    
+                    <form
+                      className="signup-form"
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        
+                        const formData = new FormData(e.target);
+                        const userData = {
+                          name: formData.get('name'),
+                          email: email,
+                          auth_provider: 'Email',
+                        };
 
-                    <div className="phone-field">
-                      <span className="country-code">+92</span>
-                      <input
-                        type="text"
-                        placeholder="Phone Number"
-                        maxLength="10"
-                        value={phone}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, "");
-                          if (value.length <= 10) setPhone(value);
-                        }}
-                      />
-                    </div>
+                        const result = await handleSignupUser(userData);
+                        
+                        if (result) {
+                          alert("User Registered Successfully! You are now logged in.");
+                          refreshUser(); // Refresh user context
+                          setLoginTab(false);
+                          // Redirect to dashboard
+                          window.location.href = "/dashboard";
+                        }
+                      }}
+                    >
+                    <p>What should we call you?</p>
+                    <input type="text" placeholder="Full Name" name="name" required disabled={isLoading} />
 
-                    {phone.length > 0 && phone.length < 10 && (
-                      <p className="error-text">
-                        Must be 10 digits (after +92)
-                      </p>
-                    )}
-
-                    <button type="submit" className="submit-btn">
-                      Sign Up as {role}
+                    <button type="submit" className="submit-btn" disabled={isLoading}>
+                      {isLoading ? "Creating Account..." : `Sign Up`}
                     </button>
-                    <p className="back-option" onClick={() => setStep(2)}>
+                    <p className="back-option" onClick={() => {
+                      setStep(2);
+                      setError("");
+                    }}>
                       ← Back
                     </p>
                   </form>
+                  </>
                 )}
               </>
             )}

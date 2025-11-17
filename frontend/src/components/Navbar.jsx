@@ -2,18 +2,27 @@ import React, { useState, useEffect } from "react";
 import Logo from "../assets/Logo.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react"; // ✅ for hamburger icons (install: npm i lucide-react)
+import { useUser } from "../context/UserContext";
 
 const Navbar = () => {
+  const { logout } = useUser();
   const [userRole, setUserRole] = useState("donor");
   const [isFullScreen, setIsFullScreen] = useState(window.innerWidth >= 1024);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [hoveredLink, setHoveredLink] = useState(null);
 
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   const navLinks = [
     { to: "/dashboard", label: "Dashboard" },
     { to: "/profile", label: "Profile" },
-    { to: "/", label: "Logout" },
+    { to: "#", label: "Logout", onClick: handleLogout },
   ];
 
   const getLinkStyle = (linkName, path) => {
@@ -98,16 +107,28 @@ const Navbar = () => {
             marginRight: "4%",
           }}
         >
-          {navLinks.map(({ to, label }) => (
-            <Link
-              key={to}
-              to={to}
-              style={getLinkStyle(label, to)}
-              onMouseEnter={() => setHoveredLink(label)}
-              onMouseLeave={() => setHoveredLink(null)}
-            >
-              {label}
-            </Link>
+          {navLinks.map(({ to, label, onClick }) => (
+            onClick ? (
+              <span
+                key={label}
+                onClick={onClick}
+                style={{...getLinkStyle(label, to), cursor: 'pointer'}}
+                onMouseEnter={() => setHoveredLink(label)}
+                onMouseLeave={() => setHoveredLink(null)}
+              >
+                {label}
+              </span>
+            ) : (
+              <Link
+                key={to}
+                to={to}
+                style={getLinkStyle(label, to)}
+                onMouseEnter={() => setHoveredLink(label)}
+                onMouseLeave={() => setHoveredLink(null)}
+              >
+                {label}
+              </Link>
+            )
           ))}
 
         </div>
@@ -144,18 +165,35 @@ const Navbar = () => {
                 borderTop: "1px solid rgba(255, 255, 255, 0.2)",
               }}
             >
-              {navLinks.map(({ to, label }) => (
-                <Link
-                  key={to}
-                  to={to}
-                  style={{
-                    ...getLinkStyle(label, to),
-                    fontSize: "1.2rem",
-                  }}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {label}
-                </Link>
+              {navLinks.map(({ to, label, onClick }) => (
+                onClick ? (
+                  <span
+                    key={label}
+                    onClick={() => {
+                      onClick();
+                      setIsMenuOpen(false);
+                    }}
+                    style={{
+                      ...getLinkStyle(label, to),
+                      fontSize: "1.2rem",
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {label}
+                  </span>
+                ) : (
+                  <Link
+                    key={to}
+                    to={to}
+                    style={{
+                      ...getLinkStyle(label, to),
+                      fontSize: "1.2rem",
+                    }}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {label}
+                  </Link>
+                )
               ))}
 
             </div>

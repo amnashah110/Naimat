@@ -788,3 +788,15 @@
     font-size: 2.85rem;
   }
 }
+
+/* Error text styling */
+.error-text {
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  margin: 10px 0;
+  padding: 8px;
+  background-color: rgba(255, 107, 107, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid #ff6b6b;
+  text-align: left;
+}

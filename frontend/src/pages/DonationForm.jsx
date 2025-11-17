@@ -1,5 +1,6 @@
-import { React, useState, useEffect } from "react";
+import { React, useState } from "react";
 import Navbar from "../components/Navbar";
+import AzureMapPicker from "../components/AzureMapPicker";
 import "../styles/Form.css";
 import headerPNG from "../assets/IMG_9076.PNG";
 import upload from "../assets/upload-solid-full.svg";
@@ -11,8 +12,104 @@ function DonationForm() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [contactInfo, setContactInfo] = useState("");
   const [contactError, setContactError] = useState("");
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [donationTitle, setDonationTitle] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [specialInstructions, setSpecialInstructions] = useState("");
 
   const navigate = useNavigate();
+
+  const handleLocationSelect = (locationData) => {
+    setSelectedLocation(locationData);
+    setShowMapModal(false);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate all fields
+    if (!donationTitle.trim()) {
+      alert("Please enter a donation title");
+      return;
+    }
+
+    if (!foodType) {
+      alert("Please select a food type");
+      return;
+    }
+
+    if (!quantity || Number(quantity) <= 0) {
+      alert("Please enter a valid quantity");
+      return;
+    }
+
+    if (!selectedLocation) {
+      alert("Please select a location on the map");
+      return;
+    }
+
+    if (!contactInfo || contactError) {
+      alert("Please provide valid contact details");
+      return;
+    }
+
+    if (!uploadedFile) {
+      alert("Please upload a picture of the food");
+      return;
+    }
+
+    if (foodType === "packaged" && !expiry) {
+      alert("Please provide an expiry date for packaged goods");
+      return;
+    }
+
+    // Create FormData
+    const formData = new FormData();
+    formData.append("file", uploadedFile);
+    formData.append("description", donationTitle);
+    formData.append("foodType", foodType);
+    formData.append("quantity", quantity);
+    formData.append("latitude", selectedLocation.coordinates[1].toString());
+    formData.append("longitude", selectedLocation.coordinates[0].toString());
+    formData.append("contact", contactInfo);
+    
+    if (specialInstructions) {
+      formData.append("specialInstructions", specialInstructions);
+    }
+    
+    if (foodType === "packaged" && expiry) {
+      formData.append("expiry", expiry);
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      const response = await fetch("http://localhost:3000/donation/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to submit donation");
+      }
+
+      const result = await response.json();
+      console.log("✅ Donation submitted successfully:", result);
+      
+      alert("Thank you! Your donation has been submitted successfully.");
+      navigate("/dashboard");
+      
+    } catch (error) {
+      console.error("❌ Submission error:", error);
+      alert(`Failed to submit donation: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const validateContact = (value) => {
     setContactInfo(value);
@@ -55,7 +152,7 @@ function DonationForm() {
             <ul>
               <li>Provide accurate food type details.</li>
               <li>Mention correct quantity (in kg or meal boxes).</li>
-              <li>Ensure pickup address is complete and clear.</li>
+              <li>Select your exact location on the map.</li>
               <li>Provide a working phone number or email for contact.</li>
               <li>
                 Use "Special Instructions" for any important notes (optional).
@@ -81,10 +178,12 @@ function DonationForm() {
               type="text"
               id="donationcaption"
               name="donationcaption"
+              value={donationTitle}
+              onChange={(e) => setDonationTitle(e.target.value)}
               placeholder="e.g., Burger Meal, Chicken Biryani etc."
               required
               style={{
-                marginBottom: "1rem",
+                marginTop: "0.8rem",
               }}
             />
 
@@ -95,12 +194,15 @@ function DonationForm() {
               value={foodType}
               onChange={(e) => setFoodType(e.target.value)}
               required
+              style={{
+                marginTop: "0.8rem",
+              }}
             >
-              <option value="" disabled selected hidden>
+              <option value="" hidden>
                 Select Food Type
               </option>
               <option value="cooked">Cooked Meal</option>
-              <option value="fruits_veggies">Fresh Fruits/Vegetables</option>
+              <option value="raw">Fresh/Raw Food</option>
               <option value="packaged">Packaged Goods</option>
             </select>
 
@@ -111,6 +213,8 @@ function DonationForm() {
                   type="date"
                   id="bestBeforeDate"
                   name="bestBeforeDate"
+                  value={expiry}
+                  onChange={(e) => setExpiry(e.target.value)}
                   min={new Date().toISOString().split("T")[0]}
                   required
                   style={{
@@ -121,6 +225,7 @@ function DonationForm() {
                     borderRadius: "5px",
                     border: "1px solid #f2e9b9",
                     cursor: "pointer",
+                    marginTop: "0.8rem",
                   }}
                 />
               </>
@@ -131,43 +236,89 @@ function DonationForm() {
               type="number"
               id="quantity"
               name="quantity"
-              placeholder="Enter quantity (kg or boxes)"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              placeholder="Enter quantity (for e.g. kg or boxes)"
               required
+              style={{
+                marginTop: "0.8rem",
+              }}
             />
 
-            <p>ADDRESS</p>
-            <div className="address-group">
-              <input
-                type="text"
-                id="pickupAddress"
-                name="pickupAddress"
-                placeholder="Street / House Address"
-                required
-              />
-              <select name="city" id="city" required>
-                <option value="" disabled selected>
-                  Select City
-                </option>
-                <option value="karachi">Karachi</option>
-                <option value="lahore">Lahore</option>
-                <option value="islamabad">Islamabad</option>
-                <option value="rawalpindi">Rawalpindi</option>
-                <option value="faisalabad">Faisalabad</option>
-                <option value="multan">Multan</option>
-                <option value="peshawar">Peshawar</option>
-                <option value="quetta">Quetta</option>
-                <option value="sialkot">Sialkot</option>
-                <option value="hyderabad">Hyderabad</option>
-                <option value="gujranwala">Gujranwala</option>
-                <option value="bahawalpur">Bahawalpur</option>
-                <option value="sukkur">Sukkur</option>
-                <option value="abbottabad">Abbottabad</option>
-                <option value="mirpur">Mirpur</option>
-              </select>
-            </div>
+            <p>LOCATION</p>
+            <button
+              type="button"
+              onClick={() => setShowMapModal(true)}
+              className="submit-button"
+              style={{
+                width: "100%",
+                maxWidth: "100%",
+                marginTop: "0.8rem",
+              }}
+            >
+              {selectedLocation ? "✓ Location Selected" : "📍 Select Location on Map"}
+            </button>
 
-            <div>
-              CONTACT DETAILS
+            {/* Map Modal */}
+            {showMapModal && (
+              <div style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.8)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 9999,
+                padding: "20px"
+              }}>
+                <div style={{
+                  backgroundColor: "#1a1a1a",
+                  borderRadius: "12px",
+                  padding: "20px",
+                  width: "90%",
+                  maxWidth: "800px",
+                  maxHeight: "90vh",
+                  display: "flex",
+                  flexDirection: "column"
+                }}>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "15px"
+                  }}>
+                    <h3 style={{ margin: 0, color: "#f2e9b9" }}>Select Your Location</h3>
+                    <button
+                      onClick={() => setShowMapModal(false)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#f2e9b9",
+                        fontSize: "24px",
+                        cursor: "pointer",
+                        padding: "0",
+                        width: "30px",
+                        height: "30px"
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  
+                  <AzureMapPicker 
+                    onLocationSelect={handleLocationSelect}
+                    initialCenter={[67.0011, 24.8607]}
+                    initialZoom={11}
+                    height="500px"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>CONTACT DETAILS
               {contactError && (
                 <p
                   style={{
@@ -198,6 +349,7 @@ function DonationForm() {
                 placeholder="11-digit phone number or email"
                 required
               />
+
             </div>
 
             <p>SPECIAL INSTRUCTIONS</p>
@@ -205,8 +357,11 @@ function DonationForm() {
               type="text"
               id="specialInstructions"
               name="specialInstructions"
+              value={specialInstructions}
+              onChange={(e) => setSpecialInstructions(e.target.value)}
               placeholder="e.g., Keep refrigerated, Spicy food"
             />
+
 
             <p>UPLOAD PICTURE</p>
             <label
@@ -228,12 +383,10 @@ function DonationForm() {
                 fontFamily: '"DM Mono"',
               }}
             >
-              <img
-                src={upload}
-                style={{
-                  width: "1.2rem",
-                }}
-              />
+              <img src={upload} style={{
+                width: "1.2rem",
+              }} />
+
               Upload Picture
             </label>
             <input
@@ -248,15 +401,17 @@ function DonationForm() {
               }}
             />
 
-            <button
-              type="submit"
-              className="submit-button"
-              onClick={() => {
-                navigate("/dashboard");
+            <button type="submit" className="submit-button"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              style={{
+                opacity: isSubmitting ? 0.6 : 1,
+                cursor: isSubmitting ? "not-allowed" : "pointer"
               }}
             >
-              Submit Donation
+              {isSubmitting ? "Submitting..." : "Submit Donation"}
             </button>
+
 
             {uploadedFile && (
               <p

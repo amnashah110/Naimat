@@ -46,11 +46,12 @@ export class DonationController {
     @Body('foodType') foodType?: string,
     @Body('quantity') quantity?: string,
     @Body('address') address?: string,
-    @Body('timeslot') timeslot?: string,
     @Body('expiry') expiry?: string,
     @Body('contact') contact?: string,
     @Body('specialInstructions') specialInstructions?: string,
     @Body('description') description?: string,
+    @Body('latitude') latitude?: string,
+    @Body('longitude') longitude?: string,
   ) {
     // Validate file
     if (!file) throw new BadRequestException('File is required');
@@ -94,7 +95,6 @@ export class DonationController {
       quantity: Number(quantity),
       address,
       description,
-      timeslot,
       expiry: foodType === 'packaged' ? expiry : null,
       contact,
       specialInstructions: specialInstructions || null,
@@ -132,24 +132,31 @@ export class DonationController {
         }
 
         (response as any).blobUrl = blockBlobClient.url;
-        // Save a FoodPost record (leave donor_id, recipient_id, pickup_date, rider_id null)
+        // Save a FoodPost record with only specified fields
         try {
           const post = this.foodPostRepo.create({
+            // Fields to fill:
+            picture_url: blockBlobClient.url,                                    // 1. blob url
+            description: description || null,                                     // 2. user provided title
+            // posting_date: auto-filled by database default (now())             // 3. current timestamp
+            expiry_date: null,                                                    // 4. will be updated from AI response
+            category: foodType,                                                   // 5. category (cooked/raw/packaged)
+            special_instructions: specialInstructions || null,                    // 6. special instructions
+            contact_details: contact,                                             // 7. contact details
+            // llm_response: will be filled after AI call                         // 8. llm response
+            latitude: latitude ? parseFloat(latitude) : null,                     // 9. latitude
+            longitude: longitude ? parseFloat(longitude) : null,                  // 10. longitude
+            
+            // Fields to leave empty/null:
             donor_id: null,
             recipient_id: null,
             availability: true,
-            picture_url: (response as any).blobUrl || blobName,
-            description: description || null,
-            expiry_date: foodType === 'packaged' && expiry ? new Date(expiry).toISOString().slice(0, 10) : null,
             pickup_date: null,
-            category: foodType,
             rider_id: null,
-            address,
-            special_instructions: specialInstructions || null,
-            contact_details: contact,
           });
 
           const saved = await this.foodPostRepo.save(post);
+          (response as any).foodPostId = saved.id;
           (response as any).foodPostId = saved.id;
           // Call LLM image analysis service
           try {
@@ -159,8 +166,15 @@ export class DonationController {
               timeout: 60000,
             });
             const llmData = llmRes.data;
-            // store full JSON string into llm_response
+            
+            // Store full JSON string into llm_response
             saved.llm_response = JSON.stringify(llmData);
+            
+            // Update expiry_date from AI response if available
+            if (llmData && llmData.expiry_date) {
+              saved.expiry_date = llmData.expiry_date;
+            }
+            
             await this.foodPostRepo.save(saved);
             (response as any).llm_response = llmData;
           } catch (llmErr) {

@@ -7,29 +7,34 @@ import donate from "../assets/wired-outline-412-gift-hover-squeeze.gif";
 import volunteer from "../assets/wired-outline-1505-radio-walkie-talkie-hover-pinch.gif";
 import { Link } from "react-router-dom";
 import headerPNG from "../assets/IMG_9076.PNG";
+import { useUser } from "../context/UserContext";
 
 function Dashboard() {
+  const { user, loading } = useUser();
+
   return (
     <div className="form">
       <img className="img" src={headerPNG} alt="Header decoration" />
       <Navbar />
       <div className="form-header">
-        <div className="form-title">Welcome!</div>
+        <div className="form-title">
+          {loading ? "Welcome!" : user?.name ? `Welcome, ${user.name.split(" ")[0]}!` : "Welcome!"}
+        </div>
       </div>
 
-      <section class="action-section">
+      <section className="action-section">
         <p className="mission-title">I want to...</p>
-        <Link to="/donation-form" class="action-card">
+        <Link to="/donation-form" className="action-card">
           <img src={donate} alt="Donate Icon" />
           <p>Donate</p>
         </Link>
 
-        <Link to="/volunteer" class="action-card">
+        <Link to="/volunteer" className="action-card">
           <img src={volunteer} alt="Volunteer Icon" />
           <p>Volunteer</p>
         </Link>
 
-        <Link to="/receive-donation" class="action-card">
+        <Link to="/receive-donation" className="action-card">
           <img src={receive} alt="Receive Icon" />
           <p>Receive</p>
         </Link>

@@ -36,9 +36,6 @@ export class FoodPost {
   rider_id: number | null;
 
   @Column({ type: 'text', nullable: true })
-  address: string | null;
-
-  @Column({ type: 'text', nullable: true })
   special_instructions: string | null;
 
   @Column({ type: 'text', nullable: true })
@@ -46,4 +43,10 @@ export class FoodPost {
 
   @Column({ type: 'text', nullable: true })
   llm_response: string | null;
+
+  @Column({ type: 'double precision', nullable: true })
+  latitude: number | null;
+
+  @Column({ type: 'double precision', nullable: true })
+  longitude: number | null;
 }
