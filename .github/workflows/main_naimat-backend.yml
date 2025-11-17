@@ -78,4 +78,3 @@ jobs:
         run: |
           echo "Files deployed to Azure:"
           ls -R ./backend
-
