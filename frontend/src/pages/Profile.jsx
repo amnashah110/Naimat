@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Navbar from "../components/Navbar";
 import "../styles/Profile.css";
+import headerPNG from "../assets/IMG_9076.PNG";
 import {
   LineChart,
   Line,
@@ -95,7 +96,7 @@ function Profile() {
         {/* Edit Profile Section */}
         <section className="edit-profile-section">
           <div className="section-header">
-            <h2>Profile Settings</h2>
+            <h2>Profile Details</h2>
             {!isEditing && (
               <button className="edit-btn" onClick={() => setIsEditing(true)}>
                 Edit Profile
@@ -124,7 +125,6 @@ function Profile() {
                   value={editData.username}
                   onChange={handleEditChange}
                   placeholder="Enter username"
-                  disabled
                 />
               </div>
 
@@ -214,15 +214,15 @@ function Profile() {
           ) : (
             <div className="profile-details">
               <div className="detail-row">
-                <span className="detail-label">📧 Email:</span>
+                <span className="detail-label">Email:</span>
                 <span className="detail-value">{user.email}</span>
               </div>
               <div className="detail-row">
-                <span className="detail-label">📱 Phone:</span>
+                <span className="detail-label">Phone Number:</span>
                 <span className="detail-value">{user.phone}</span>
               </div>
               <div className="detail-row">
-                <span className="detail-label">📍 City:</span>
+                <span className="detail-label">City:</span>
                 <span className="detail-value">{user.city}</span>
               </div>
             </div>

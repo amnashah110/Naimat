@@ -128,7 +128,7 @@ function Receiver() {
     }}>
       <Navbar />
       <img className="img" src={headerPNG} alt="Header decoration" />
-      
+
       <div className="donations-body">
         <div className="filter-sort-bar">
           <div className="location-toggle-container">
@@ -316,6 +316,5 @@ function Receiver() {
     </div>
   );
 }
-
 
 export default Receiver;
