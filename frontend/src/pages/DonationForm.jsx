@@ -83,7 +83,7 @@ function DonationForm() {
               id="donationcaption"
               name="donationcaption"
               placeholder="e.g., Burger Meal, Chicken Biryani etc."
-              required
+              required  
               style={{
                 marginBottom: "1rem",
               }}
