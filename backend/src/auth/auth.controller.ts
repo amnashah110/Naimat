@@ -60,10 +60,24 @@ export class AuthController {
   @Public()
   @Post('passwordless/requestcode')
   @HttpCode(200)
-  async requestCode(@Body() body: { email: string }) {
-    // Always respond 204 to avoid user enumeration
-
+  async requestCode(@Body() body: { email: string; isSignup?: boolean }) {
     if (!body.email) throw new UnauthorizedException('Email is required');
+    
+    // Check if email exists in users table
+    const userExists = await this.authService.checkEmailExists(body.email);
+    
+    if (body.isSignup) {
+      // For signup, email should NOT exist
+      if (userExists) {
+        throw new UnauthorizedException('Email already exists. Please login instead.');
+      }
+    } else {
+      // For login, email MUST exist
+      if (!userExists) {
+        throw new UnauthorizedException('Email not found. Please sign up first.');
+      }
+    }
+    
     const { code } = await this.otpService.create(body.email);
     await this.emailService.sendLoginCode(body.email, code);
     return { status: 'Code sent' };

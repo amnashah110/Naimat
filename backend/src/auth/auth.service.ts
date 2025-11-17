@@ -8,16 +8,14 @@ import { LegacyCreateUserDto } from 'src/user/dto/legacycreateuser.dto';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
-export class AuthService
-{
+export class AuthService {
     constructor(
         private readonly userService: UserService,
         private readonly jwtService: JwtService,
         @Inject(refreshConfig.KEY) private refreshTokenConfig: ConfigType<typeof refreshConfig>
-    ) {}
+    ) { }
 
-    async signTokens(id: number)
-    {
+    async signTokens(id: number) {
         return {
             id,
             jwtToken: this.jwtService.sign({ sub: id }),
@@ -25,11 +23,12 @@ export class AuthService
         };
     }
 
-    async signup(user: LegacyCreateUserDto)
-    {
-        const password_hash = await hash(user.password);
-        const { password, ...restuser } = user;
-        const createdUser = await this.userService.createUser({ ...restuser, password_hash, auth_provider: 'Email' });
+    async signup(user: LegacyCreateUserDto) {
+        const createdUser = await this.userService.createUser({
+            name: user.name,
+            email: user.email,
+            auth_provider: user.auth_provider || 'Email', // default to 'Email' if not provided
+        });
 
         return {
             id: createdUser.id,
@@ -38,27 +37,22 @@ export class AuthService
         };
     }
 
-    async validate(username: string, password: string)
-    {
-        let user = await this.userService.findbyusername(username);
+    async validate(username: string, password: string) {
+        let user = await this.userService.findbyemail(username);
 
         if (!user)
-            user = await this.userService.findbyemail(username);
-
-        if (!user)
-            throw new UnauthorizedException("Error: Username doesn't exist!");
+            throw new UnauthorizedException("Error: Email doesn't exist!");
 
         if (user.auth_provider !== 'Email')
             throw new UnauthorizedException("Error: Invalid authentication provider!");
 
-        if (!await verify(user.password_hash, password))
-            throw new UnauthorizedException("Error: Invalid password!");
+        // Note: Password validation removed as user entity no longer stores password_hash
+        // This method is legacy and should be replaced with passwordless OTP authentication
 
         return user;
     }
 
-    refresh(id: number)
-    {
+    refresh(id: number) {
         let payload = { sub: id };
 
         let jwt = this.jwtService.sign(payload);
@@ -66,8 +60,7 @@ export class AuthService
         return { id, jwt };
     }
 
-    async validateGoogleUser(googleUser)
-    {
+    async validateGoogleUser(googleUser) {
         const user = await this.userService.findbyemail(googleUser.email);
         if (!user) return await this.userService.createUser(googleUser);
         if (user.auth_provider !== 'Google') throw new UnauthorizedException("Error: Invalid authentication provider!");
@@ -75,11 +68,15 @@ export class AuthService
         return user;
     }
 
-    async userinfofromemail(email: string): Promise<User>
-    {
+    async userinfofromemail(email: string): Promise<User> {
         let user = await this.userService.findbyemail(email);
         if (!user) throw new UnauthorizedException("Error: Email doesn't exist!");
 
         return user;
+    }
+
+    async checkEmailExists(email: string): Promise<boolean> {
+        const user = await this.userService.findbyemail(email);
+        return !!user; // Returns true if user exists, false otherwise
     }
 }

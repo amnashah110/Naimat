@@ -87,7 +87,7 @@ function DonationForm() {
     try {
       setIsSubmitting(true);
       
-      const response = await fetch("http://localhost:3000/donation/upload", {
+      const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/upload", {
         method: "POST",
         body: formData,
       });

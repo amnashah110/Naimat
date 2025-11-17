@@ -9,14 +9,14 @@ export class UserService
 {
     constructor(@InjectRepository(User) private userRepo: Repository<User>) {}
 
-    async findbyusername(username: string)
-    {
-        return this.userRepo.findOne({where: {username}});
-    }
-
     async findbyemail(email: string)
     {
         return await this.userRepo.findOne({where: {email}});
+    }
+
+    async findById(id: number)
+    {
+        return await this.userRepo.findOne({where: {id}});
     }
 
     async createUser(user)

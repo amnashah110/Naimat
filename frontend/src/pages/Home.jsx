@@ -88,7 +88,7 @@ function Home() {
     setError("");
     
     try {
-      const response = await fetch("http://localhost:3000/auth/passwordless/requestcode", {
+      const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/auth/passwordless/requestcode", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -122,7 +122,7 @@ function Home() {
     setError("");
     
     try {
-      const response = await fetch("http://localhost:3000/auth/passwordless/verifycode", {
+      const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/auth/passwordless/verifycode", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -172,7 +172,7 @@ function Home() {
     setError("");
     
     try {
-      const response = await fetch("http://localhost:3000/auth/signup", {
+      const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

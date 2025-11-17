@@ -18,7 +18,7 @@ function Receiver() {
     const fetchDonations = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3000/donation/available');
+        const response = await fetch('https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/available');
         if (!response.ok) {
           throw new Error('Failed to fetch donations');
         }
