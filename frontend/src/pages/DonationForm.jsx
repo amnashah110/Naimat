@@ -76,7 +76,6 @@ function DonationForm() {
           </p>
 
           <div className="form-left">
-
             <p>DONATION TITLE</p>
             <input
               type="text"
@@ -145,18 +144,30 @@ function DonationForm() {
                 placeholder="Street / House Address"
                 required
               />
-              <input
-                type="text"
-                id="city"
-                name="city"
-                placeholder="City"
-                required
-              />
+              <select name="city" id="city" required>
+                <option value="" disabled selected>
+                  Select City
+                </option>
+                <option value="karachi">Karachi</option>
+                <option value="lahore">Lahore</option>
+                <option value="islamabad">Islamabad</option>
+                <option value="rawalpindi">Rawalpindi</option>
+                <option value="faisalabad">Faisalabad</option>
+                <option value="multan">Multan</option>
+                <option value="peshawar">Peshawar</option>
+                <option value="quetta">Quetta</option>
+                <option value="sialkot">Sialkot</option>
+                <option value="hyderabad">Hyderabad</option>
+                <option value="gujranwala">Gujranwala</option>
+                <option value="bahawalpur">Bahawalpur</option>
+                <option value="sukkur">Sukkur</option>
+                <option value="abbottabad">Abbottabad</option>
+                <option value="mirpur">Mirpur</option>
+              </select>
             </div>
 
-            
-
-            <div>CONTACT DETAILS 
+            <div>
+              CONTACT DETAILS
               {contactError && (
                 <p
                   style={{
@@ -187,7 +198,6 @@ function DonationForm() {
                 placeholder="11-digit phone number or email"
                 required
               />
-              
             </div>
 
             <p>SPECIAL INSTRUCTIONS</p>
@@ -198,65 +208,68 @@ function DonationForm() {
               placeholder="e.g., Keep refrigerated, Spicy food"
             />
 
-            
-                <p>UPLOAD PICTURE</p>
-                <label
-                  htmlFor="pictureUpload"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "0.6rem",
-                    padding: "0.3rem 1rem",
-                    backgroundColor: "transparent",
-                    border: "1.5px solid #f2e9b9",
-                    borderRadius: "8px",
-                    color: "#f2e9b9",
-                    cursor: "pointer",
-                    transition: "all 0.25s ease",
-                    fontSize: "0.95rem",
-                    fontWeight: "600",
-                    fontFamily: '"DM Mono"',
-                  }}
-                >
-                  <img src={upload} style={{
-                    width: "1.2rem",
-                  }}/>
-                  
-                  Upload Picture
-                </label>
-                <input
-                  type="file"
-                  id="pictureUpload"
-                  name="pictureUpload"
-                  accept="image/*"
-                  onChange={(e) => setUploadedFile(e.target.files[0])}
-                  required
-                  style={{
-                    display: "none",
-                  }}
-                />
+            <p>UPLOAD PICTURE</p>
+            <label
+              htmlFor="pictureUpload"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.6rem",
+                padding: "0.3rem 1rem",
+                backgroundColor: "transparent",
+                border: "1.5px solid #f2e9b9",
+                borderRadius: "8px",
+                color: "#f2e9b9",
+                cursor: "pointer",
+                transition: "all 0.25s ease",
+                fontSize: "0.95rem",
+                fontWeight: "600",
+                fontFamily: '"DM Mono"',
+              }}
+            >
+              <img
+                src={upload}
+                style={{
+                  width: "1.2rem",
+                }}
+              />
+              Upload Picture
+            </label>
+            <input
+              type="file"
+              id="pictureUpload"
+              name="pictureUpload"
+              accept="image/*"
+              onChange={(e) => setUploadedFile(e.target.files[0])}
+              required
+              style={{
+                display: "none",
+              }}
+            />
 
-            <button type="submit" className="submit-button"
-            onClick={()=> {
-              navigate("/dashboard")
-            }}>
+            <button
+              type="submit"
+              className="submit-button"
+              onClick={() => {
+                navigate("/dashboard");
+              }}
+            >
               Submit Donation
             </button>
 
-            
-                {uploadedFile && (
-                  <p
-                    style={{
-                      fontSize: "0.85rem",
-                      color: "#f2e9b9",
-                      marginTop: "0.4rem",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    ✓ {uploadedFile.name}
-                  </p>
-                )}
+            {uploadedFile && (
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  color: "#f2e9b9",
+                  marginTop: "0.4rem",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                ✓ {uploadedFile.name}
+              </p>
+            )}
           </div>
         </div>
       </section>
