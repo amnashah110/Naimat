@@ -1,6 +1,3 @@
-# Deploy NestJS backend to Azure Web App
-# Docs: https://github.com/Azure/webapps-deploy
-
 name: Build and deploy Node.js (NestJS) app to Azure Web App - naimat-backend
 
 on:
@@ -10,12 +7,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    env:
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
     permissions:
-      contents: read # required for checkout
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -32,29 +28,6 @@ jobs:
           npm ci
           npm run build
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-build
-          path: |
-            backend/dist
-            backend/package.json
-            backend/package-lock.json
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-build
-          path: ./backend
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -69,15 +42,9 @@ jobs:
           slot-name: 'Production'
           package: ./backend
 
-      - name: Set startup command (for NestJS)
+      - name: Set startup command
         run: |
-          echo "Configuring Azure startup command..."
           az webapp config set \
             --resource-group naimat-dev_group \
             --name naimat-backend \
             --startup-file "npm run start:prod"
-
-      - name: Verify deployed files
-        run: |
-          echo "Files deployed to Azure:"
-          ls -R ./backend
