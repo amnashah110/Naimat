@@ -331,15 +331,6 @@ function Profile() {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1a1a1a",
-                    border: "2px solid #e2d7a0",
-                    borderRadius: "8px",
-                  }}
-                  labelStyle={{ color: "#e2d7a0" }}
-                  formatter={(value) => `${value} donations`}
-                />
               </PieChart>
             </ResponsiveContainer>
           </div>
