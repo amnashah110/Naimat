@@ -5,6 +5,7 @@ import "../styles/Form.css";
 import "../styles/receiver.css";
 import calendar from "../assets/calendar-days-solid-full.svg";
 import pin from "../assets/location-dot-solid-full.svg";
+import headerPNG from "../assets/IMG_9076.PNG";
 
 function Receiver() {
   const donationsData = [
@@ -315,5 +316,6 @@ function Receiver() {
     </div>
   );
 }
+
 
 export default Receiver;
