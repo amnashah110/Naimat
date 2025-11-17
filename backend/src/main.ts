@@ -7,7 +7,13 @@ async function bootstrap() {
   
   // Enable CORS
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'], // Vite default ports
+    origin: [
+      'http://localhost:5173', 
+      'http://localhost:3000', 
+      'http://localhost:5174',
+      'https://naimat.tech',
+      'https://www.naimat.tech'
+    ], // Allow local development and production
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
