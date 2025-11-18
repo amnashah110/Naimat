@@ -5,6 +5,7 @@ import "../styles/Form.css";
 import "../styles/receiver.css";
 import calendar from "../assets/calendar-days-solid-full.svg";
 import pin from "../assets/location-dot-solid-full.svg";
+import applaud from "../assets/wired-outline-1092-applause-hover-pinch.gif";
 
 function Volunteer() {
   const donationsData = [
@@ -105,6 +106,7 @@ function Volunteer() {
   const [locationBased, setLocationBased] = useState(false);
   const [detailsView, setDetailsView] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState(null);
+  const [confirmMessage, setConfirmMessage] = useState(false);
 
   const filteredDonations = donationsData.filter(
     (d) => filter === "All" || d.food_category === filter
@@ -239,7 +241,41 @@ function Volunteer() {
 
             <div className="details-header">
               <h2 className="details-caption">{selectedDonation.caption}</h2>
-              <p className="details-type">{selectedDonation.type}</p>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: "1.5rem",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                }}
+              >
+                <p
+                  className="details-type"
+                  style={{
+                    color: "#f1edd5ff",
+                    border: "3px dashed #dbd08fff",
+                    padding: "0.6rem 1rem",
+                    borderRadius: "10px",
+                    backgroundColor: "rgba(94, 94, 94, 0.2)",
+                  }}
+                >
+                  Donation posted on <br /> {selectedDonation.date}
+                </p>
+                <p
+                  className="details-type"
+                  style={{
+                    color: "#f1edd5ff",
+                    border: "3px dashed #dbd08fff",
+                    padding: "0.6rem 1rem",
+                    borderRadius: "10px",
+                    backgroundColor: "rgba(94, 94, 94, 0.2)",
+                  }}
+                >
+                  Deliver within <br /> {selectedDonation.expiry}
+                </p>
+              </div>
             </div>
 
             <div className="details-content">
@@ -250,9 +286,6 @@ function Volunteer() {
                   coordinates={selectedDonation.pickup_coordinates}
                   address={selectedDonation.pickup_address}
                 />
-                <div className="detail-item">
-                  <strong>📍 Address:</strong> {selectedDonation.pickup_address}
-                </div>
               </div>
 
               {/* Destination Location */}
@@ -262,10 +295,6 @@ function Volunteer() {
                   coordinates={selectedDonation.destination_coordinates}
                   address={selectedDonation.destination_address}
                 />
-                <div className="detail-item">
-                  <strong>📍 Address:</strong>{" "}
-                  {selectedDonation.destination_address}
-                </div>
               </div>
 
               {/* Food Type */}
@@ -292,50 +321,101 @@ function Volunteer() {
 
               {/* Storage */}
               <div className="details-section">
-                <strong>Storage:</strong> {selectedDonation.storage}
+                <strong style={{
+                  fontFamily: "DM Mono",
+                }}>Storage:</strong> {selectedDonation.storage}
               </div>
 
               {/* Expiry */}
               <div className="details-section">
-                <strong>Shelf Life:</strong> {selectedDonation.expiry}
+                <strong style={{
+                  fontFamily: "DM Mono",
+                }}>Shelf Life:</strong> {selectedDonation.expiry}
               </div>
 
-              {/* Allergens */}
-              {selectedDonation.allergens !== "None" && (
-                <div className="details-section allergen-warning">
-                  <h3>Allergens</h3>
-                  <div className="tags-container">
-                    {Array.isArray(selectedDonation.allergens)
-                      ? selectedDonation.allergens.map((a, idx) => (
-                          <span key={idx} className="tag allergen-tag">
-                            {a}
-                          </span>
-                        ))
-                      : selectedDonation.allergens}
-                  </div>
-                </div>
-              )}
-
-              {/* Tags */}
-              {selectedDonation.azure_tags && (
-                <div className="details-section">
-                  <h3>Tags</h3>
-                  <div className="tags-container">
-                    {selectedDonation.azure_tags.map((tag, idx) => (
-                      <span key={idx} className="tag azure-tag">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             <button
               className="accept-details-btn"
-              onClick={() => setDetailsView(false)}
+              onClick={() => {
+                setDetailsView(false);
+                setConfirmMessage(true);
+              }}
+              style={{
+                textTransform: "uppercase",
+                fontWeight: "bold",
+                fontSize: "large",
+              }}
             >
               Accept Pickup
+            </button>
+          </div>
+        </>
+      )}
+
+      {confirmMessage && (
+        <>
+          <div className="overlay-screen" />
+          <div
+            className="details-modal"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyItems: "center",
+              alignItems: "center",
+              gap: "1rem",
+              height: "fit-content",
+              padding: "2rem 1rem",
+            }}
+          >
+            <img
+              src={applaud}
+              style={{
+                width: "25%",
+              }}
+            />
+            <div
+              style={{
+                fontSize: "1.2rem",
+                fontWeight: "bold",
+                textAlign: "center",
+                fontFamily: "DM Mono",
+              }}
+            >
+              <span
+                style={{
+                  color: "#e2d7a0",
+                  padding: "0.5rem 0 1rem 0",
+                }}
+              >
+                Donation accepted!<br/>Thank you for making a difference. <br />
+              </span>
+              
+              <span
+                style={{
+                  letterSpacing: "2px",
+                }}
+              >
+                - Team Naimat
+              </span>
+              </div>
+              <div
+                style={{
+                  fontSize: "1rem",
+                  color: "#d8d8d8ff",
+                  fontFamily: "DM Mono",
+                  textAlign: "center",
+                  margin: "0 5rem",
+                }}
+              >
+                Recipient and Donor details have been shared via email.
+              </div>
+
+            <button
+              className="accept-btn"
+              onClick={() => setConfirmMessage(false)}
+            >
+              Acknowledged!
             </button>
           </div>
         </>
