@@ -60,10 +60,14 @@ function AzureMapPicker({
         // Create a symbol layer
         const symbolLayer = new atlas.layer.SymbolLayer(dataSource, null, {
           iconOptions: {
-            image: `marker-${markerColor}`,
             size: 0.8,
-            anchor: 'center',
             allowOverlap: true
+          },
+          textOptions: {
+            textField: '📍',
+            size: 12,
+            color: markerColor,
+            offset: [0, -20]
           }
         });
         

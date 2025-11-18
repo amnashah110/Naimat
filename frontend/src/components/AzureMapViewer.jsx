@@ -55,10 +55,14 @@ function AzureMapViewer({
         // Create a symbol layer to render the marker
         const symbolLayer = new atlas.layer.SymbolLayer(dataSource, null, {
           iconOptions: {
-            image: `marker-${markerColor}`,
             size: 0.8,
-            anchor: 'center',
             allowOverlap: true
+          },
+          textOptions: {
+            textField: '📍',
+            size: 12,
+            color: markerColor,
+            offset: [0, -20]
           }
         });
         
