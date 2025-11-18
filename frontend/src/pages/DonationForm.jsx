@@ -5,6 +5,7 @@ import "../styles/Form.css";
 import headerPNG from "../assets/IMG_9076.PNG";
 import upload from "../assets/upload-solid-full.svg";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 
 function DonationForm() {
   const [isFullScreen, setIsFullScreen] = useState(window.innerWidth >= 1024);
@@ -21,6 +22,7 @@ function DonationForm() {
   const [specialInstructions, setSpecialInstructions] = useState("");
 
   const navigate = useNavigate();
+  const { user } = useUser();
 
   const handleLocationSelect = (locationData) => {
     setSelectedLocation(locationData);
@@ -29,6 +31,14 @@ function DonationForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check if user is logged in
+    const token = localStorage.getItem("access_token");
+    if (!token || !user) {
+      alert("Please log in to submit a donation");
+      navigate("/"); // Redirect to home/login
+      return;
+    }
 
     // Validate all fields
     if (!donationTitle.trim()) {
@@ -89,6 +99,9 @@ function DonationForm() {
       
       const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/upload", {
         method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
         body: formData,
       });
 
