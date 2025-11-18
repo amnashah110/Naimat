@@ -156,6 +156,7 @@ export class DonationController {
   }
 
   @Post('upload')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       // prefer memoryStorage to get file.buffer available
@@ -172,6 +173,7 @@ export class DonationController {
     }),
   )
   async uploadImage(
+    @Req() req: any,
     @UploadedFile() file: any,
     @Body('foodType') foodType?: string,
     @Body('quantity') quantity?: string,
@@ -283,7 +285,7 @@ export class DonationController {
             longitude: longitude ? parseFloat(longitude) : null,                  // 10. longitude
             
             // Fields to leave empty/null:
-            donor_id: null,
+            donor_id: req.user.id, // Set donor_id to logged-in user's id
             recipient_id: null,
             availability: true,
             pickup_date: null,
