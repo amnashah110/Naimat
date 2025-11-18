@@ -206,7 +206,13 @@ function Volunteer() {
                   </div>
                 </div>
 
-                <div className="donation-actions">
+                <div
+                  className="donation-actions"
+                  onClick={() => {
+                    setDetailsView(false);
+                    setConfirmMessage(true);
+                  }}
+                >
                   <button className="accept-btn">Accept Pickup</button>
                   <button
                     className="details-btn"
@@ -321,18 +327,27 @@ function Volunteer() {
 
               {/* Storage */}
               <div className="details-section">
-                <strong style={{
-                  fontFamily: "DM Mono",
-                }}>Storage:</strong> {selectedDonation.storage}
+                <strong
+                  style={{
+                    fontFamily: "DM Mono",
+                  }}
+                >
+                  Storage:
+                </strong>{" "}
+                {selectedDonation.storage}
               </div>
 
               {/* Expiry */}
               <div className="details-section">
-                <strong style={{
-                  fontFamily: "DM Mono",
-                }}>Shelf Life:</strong> {selectedDonation.expiry}
+                <strong
+                  style={{
+                    fontFamily: "DM Mono",
+                  }}
+                >
+                  Shelf Life:
+                </strong>{" "}
+                {selectedDonation.expiry}
               </div>
-
             </div>
 
             <button
@@ -388,9 +403,11 @@ function Volunteer() {
                   padding: "0.5rem 0 1rem 0",
                 }}
               >
-                Donation accepted!<br/>Thank you for making a difference. <br />
+                Donation accepted!
+                <br />
+                Thank you for making a difference. <br />
               </span>
-              
+
               <span
                 style={{
                   letterSpacing: "2px",
@@ -398,18 +415,18 @@ function Volunteer() {
               >
                 - Team Naimat
               </span>
-              </div>
-              <div
-                style={{
-                  fontSize: "1rem",
-                  color: "#d8d8d8ff",
-                  fontFamily: "DM Mono",
-                  textAlign: "center",
-                  margin: "0 5rem",
-                }}
-              >
-                Recipient and Donor details have been shared via email.
-              </div>
+            </div>
+            <div
+              style={{
+                fontSize: "1rem",
+                color: "#d8d8d8ff",
+                fontFamily: "DM Mono",
+                textAlign: "center",
+                margin: "0 5rem",
+              }}
+            >
+              Recipient and Donor details have been shared via email.
+            </div>
 
             <button
               className="accept-btn"
