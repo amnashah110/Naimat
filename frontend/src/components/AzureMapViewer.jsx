@@ -45,13 +45,24 @@ function AzureMapViewer({
           map.controls.add(new atlas.control.ZoomControl(), { position: 'top-right' });
         }
 
-        // Add a fixed marker at the location
-        const marker = new atlas.HtmlMarker({
-          color: markerColor,
-          position: [lon, lat]
+        // Create a data source and add a point
+        const dataSource = new atlas.source.DataSource();
+        map.sources.add(dataSource);
+        
+        // Add the location point
+        dataSource.add(new atlas.data.Point([lon, lat]));
+        
+        // Create a symbol layer to render the marker
+        const symbolLayer = new atlas.layer.SymbolLayer(dataSource, null, {
+          iconOptions: {
+            image: `marker-${markerColor}`,
+            size: 0.8,
+            anchor: 'center',
+            allowOverlap: true
+          }
         });
-
-        map.markers.add(marker);
+        
+        map.layers.add(symbolLayer);
       });
 
       mapInstanceRef.current = map;

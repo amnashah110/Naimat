@@ -27,7 +27,7 @@ function AzureMapPicker({
 }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const markerRef = useRef(null);
+  const dataSourceRef = useRef(null);
 
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
@@ -48,6 +48,26 @@ function AzureMapPicker({
         
         // Add zoom controls
         map.controls.add(new atlas.control.ZoomControl(), { position: 'top-right' });
+
+        // Create a data source for the marker
+        const dataSource = new atlas.source.DataSource();
+        map.sources.add(dataSource);
+        dataSourceRef.current = dataSource;
+        
+        // Add initial point
+        dataSource.add(new atlas.data.Point(initialCenter));
+        
+        // Create a symbol layer
+        const symbolLayer = new atlas.layer.SymbolLayer(dataSource, null, {
+          iconOptions: {
+            image: `marker-${markerColor}`,
+            size: 0.8,
+            anchor: 'center',
+            allowOverlap: true
+          }
+        });
+        
+        map.layers.add(symbolLayer);
 
         if (showGeolocation) {
           // Create custom geolocation button
@@ -93,16 +113,17 @@ function AzureMapPicker({
 
                 console.log('✅ Location detected:', { latitude, longitude });
 
-                if (markerRef.current) {
-                  markerRef.current.setOptions({ position: userLocation });
-                  map.setCamera({
-                    center: userLocation,
-                    zoom: 17,
-                    type: 'ease',
-                    duration: 1500
-                  });
-                  console.log('📍 Map updated to your location');
-                }
+                // Update data source
+                dataSource.clear();
+                dataSource.add(new atlas.data.Point(userLocation));
+                
+                map.setCamera({
+                  center: userLocation,
+                  zoom: 17,
+                  type: 'ease',
+                  duration: 1500
+                });
+                console.log('📍 Map updated to your location');
 
                 geoButton.innerHTML = '📍';
                 geoButton.disabled = false;
@@ -136,15 +157,13 @@ function AzureMapPicker({
           mapContainer.appendChild(buttonContainer);
         }
 
-        // Add a draggable marker at initial center
-        const marker = new atlas.HtmlMarker({
-          color: markerColor,
-          draggable: true,
-          position: initialCenter
+        // Add click event to move the marker
+        map.events.add('click', function (e) {
+          if (dataSource) {
+            dataSource.clear();
+            dataSource.add(new atlas.data.Point(e.position));
+          }
         });
-
-        map.markers.add(marker);
-        markerRef.current = marker;
       });
 
       mapInstanceRef.current = map;
@@ -160,18 +179,21 @@ function AzureMapPicker({
   }, [initialCenter, initialZoom, minZoom, maxZoom, showGeolocation, markerColor]);
 
   const handleConfirmLocation = () => {
-    if (markerRef.current && onLocationSelect) {
-      const position = markerRef.current.getOptions().position;
-      console.log("📍 Current Coordinates:", {
-        longitude: position[0],
-        latitude: position[1],
-        coordinates: position
-      });
+    if (dataSourceRef.current && onLocationSelect) {
+      const shapes = dataSourceRef.current.getShapes();
+      if (shapes.length > 0) {
+        const position = shapes[0].getCoordinates();
+        console.log("📍 Current Coordinates:", {
+          longitude: position[0],
+          latitude: position[1],
+          coordinates: position
+        });
 
-      // Return only coordinates, no address
-      onLocationSelect({
-        coordinates: position
-      });
+        // Return only coordinates, no address
+        onLocationSelect({
+          coordinates: position
+        });
+      }
     }
   };
 
