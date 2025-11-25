@@ -35,6 +35,9 @@ export class DeliveryPostService {
   // 3. find specific using any field
   async findByField(field: keyof DeliveryPost, value: any) {
     const where: FindOptionsWhere<DeliveryPost> = { [field]: value };
-    return await this.repo.find({ where });
+    return await this.repo.find({ 
+      where,
+      relations: ['foodpost'], // Include foodpost relation
+    });
   }
 }

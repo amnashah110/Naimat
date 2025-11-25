@@ -90,7 +90,7 @@ function DonationForm() {
     try {
       setIsSubmitting(true);
       
-      const response = await fetch("http://localhost:3000/donation/upload", {
+      const response = await fetch("naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/upload", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -120,7 +120,7 @@ function DonationForm() {
 
         // Call backend endpoint to add to index
         const indexResponse = await fetch(
-          `http://localhost:3000/donation/add-to-index/${result.foodPostId}`,
+          `naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/add-to-index/${result.foodPostId}`,
           {
             method: "POST",
             headers: {

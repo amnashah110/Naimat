@@ -22,7 +22,7 @@ function Receiver() {
     const fetchDonations = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3000/donation/available');
+        const response = await fetch('naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/available');
         if (!response.ok) {
           throw new Error('Failed to fetch donations');
         }
@@ -167,7 +167,7 @@ function Receiver() {
       setIsSearching(true);
       console.log("Searching for:", searchQuery);
       
-      const response = await fetch('http://localhost:3000/donation/search', {
+      const response = await fetch('naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -358,7 +358,7 @@ function Receiver() {
       console.log('Sending request to notify donor:', requestBody);
 
       // Send email notification to donor
-      const response = await fetch(`http://localhost:3000/donation/notify-donor/${donationId}`, {
+      const response = await fetch(`naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/notify-donor/${donationId}`, {
         method: 'POST',
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -446,7 +446,7 @@ function Receiver() {
 
       console.log("Creating delivery post with data:", deliveryData);
 
-      const response = await fetch('http://localhost:3000/delivery-post/create', {
+      const response = await fetch('naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/delivery-post/create', {
         method: 'POST',
         headers: {
           "Authorization": `Bearer ${token}`,

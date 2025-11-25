@@ -1,11 +1,21 @@
-import { Controller, Post, Get, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, UseGuards, Param, BadRequestException, NotFoundException } from '@nestjs/common';
 import { DeliveryPostService } from './deliverypost.services';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BlobSASPermissions, generateBlobSASQueryParameters, StorageSharedKeyCredential } from '@azure/storage-blob';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { FoodPost } from '../entities/foodpost.entity';
+import { User } from '../entities/user.entity';
+import { EmailService } from '../auth/strategies/passwordless-auth/services/email.service';
 
 @Controller('delivery-post')
 export class DeliveryPostController {
-  constructor(private service: DeliveryPostService) {}
+  constructor(
+    private service: DeliveryPostService,
+    @InjectRepository(FoodPost) private readonly foodPostRepo: Repository<FoodPost>,
+    @InjectRepository(User) private readonly userRepo: Repository<User>,
+    private readonly emailService: EmailService
+  ) {}
 
   /**
    * Generate a SAS token for a blob URL
@@ -114,5 +124,68 @@ export class DeliveryPostController {
   @Get('find')
   async find(@Query('field') field: string, @Query('value') value: string) {
     return this.service.findByField(field as any, value);
+  }
+
+  // 4. notify donor about volunteer
+  @Post('notify-donor/:deliveryPostId')
+  @UseGuards(JwtAuthGuard)
+  async notifyDonorAboutVolunteer(
+    @Param('deliveryPostId') deliveryPostId: string,
+    @Body() body: { volunteerName: string; volunteerEmail: string; volunteerContact: string },
+  ) {
+    try {
+      console.log('Notify donor about volunteer request received:', { deliveryPostId, body });
+      
+      const id = parseInt(deliveryPostId, 10);
+      if (isNaN(id)) {
+        throw new BadRequestException('Invalid delivery post ID');
+      }
+
+      // Find the delivery post with foodpost relation
+      const deliveryPost = await this.service.findByField('id', id.toString());
+      if (!deliveryPost || deliveryPost.length === 0) {
+        throw new NotFoundException('Delivery post not found');
+      }
+
+      const delivery = deliveryPost[0];
+      const foodpost = delivery.foodpost;
+
+      if (!foodpost || !foodpost.donor_id) {
+        throw new BadRequestException('Foodpost or donor not found');
+      }
+
+      console.log('Found delivery post and foodpost:', { 
+        deliveryId: delivery.id, 
+        foodpostId: foodpost.id, 
+        donorId: foodpost.donor_id 
+      });
+
+      // Find the donor
+      const donor = await this.userRepo.findOne({ where: { id: foodpost.donor_id } });
+      if (!donor) {
+        throw new NotFoundException('Donor not found');
+      }
+
+      console.log('Donor found:', { id: donor.id, email: donor.email, name: donor.name });
+
+      // Send email to donor
+      await this.emailService.sendVolunteerDetailsToDonor(
+        donor.email,
+        donor.name,
+        body.volunteerName,
+        body.volunteerEmail,
+        body.volunteerContact
+      );
+
+      console.log('Email sent successfully to donor:', donor.email);
+
+      return {
+        success: true,
+        message: 'Donor notified successfully about volunteer'
+      };
+    } catch (error) {
+      console.error('Error notifying donor:', error);
+      throw new BadRequestException('Failed to notify donor: ' + error.message);
+    }
   }
 }

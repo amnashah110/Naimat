@@ -54,7 +54,7 @@ export class AuthController {
   async googleRedirect(@Req() req)
   {
     return await this.authService.signTokens(req.user.id);
-    //res.redirect(`http://localhost:3000/?token=${response.jwt}&refresh=${response.refresh}`);
+    //res.redirect(`naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/?token=${response.jwt}&refresh=${response.refresh}`);
   }
 
   @Public()

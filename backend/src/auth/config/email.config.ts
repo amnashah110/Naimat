@@ -9,5 +9,5 @@ export default registerAs('email', () => ({
     pass: process.env.SMTP_PASS,
   },
   from: process.env.EMAIL_FROM || 'No Reply <no-reply@example.com>',
-  appUrl: process.env.APP_URL || 'http://localhost:3000',
+  appUrl: process.env.APP_URL || 'naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net',
 }));

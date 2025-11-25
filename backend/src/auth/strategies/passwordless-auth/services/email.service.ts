@@ -143,4 +143,88 @@ export class EmailService {
       ]
     });
   }
+
+  async sendVolunteerDetailsToDonor(
+    donorEmail: string,
+    donorName: string,
+    volunteerName: string,
+    volunteerEmail: string,
+    volunteerContact: string,
+  ) {
+    const from = this.emailConfiguration.from;
+    const html = `
+      <meta name="color-scheme" content="light only">
+      <meta name="supported-color-schemes" content="light only">
+      <style>
+        a { color: #87CEEB !important; text-decoration: none !important; }
+        a:hover { color: #B0E0E6 !important; text-decoration: underline !important; }
+        @media (prefers-color-scheme: dark) {
+          div, p, h2, a { background: #000 !important; color: rgb(242, 233, 185) !important; }
+          h2 { color: rgb(242, 233, 185) !important; }
+          p { color: rgb(242, 233, 185) !important; }
+          a { color: #87CEEB !important; }
+          a:hover { color: #B0E0E6 !important; }
+          p.footer-text { color: rgb(200, 190, 160) !important; }
+          div.divider { background: rgb(242, 233, 185) !important; }
+          a.button { background: rgb(242, 233, 185) !important; color: #000 !important; }
+          img.logo { filter: invert(100%) !important; }
+        }
+      </style>
+
+      <div style="font-family:'Open Sans', Helvetica, Arial, sans-serif; max-width:600px; margin:0 auto; padding:24px; border-radius:12px; background-color:#000; color:rgb(242, 233, 185); box-shadow:0 8px 24px rgba(0,0,0,0.5); text-align:center; overflow:hidden;">
+        
+        <!-- Logo -->
+        <div style="width:100px; height:100px; margin:0 auto 24px; display:flex; align-items:center; justify-content:center;">
+          <img class="logo" src="cid:logo" alt="Naimat Logo" style="width:100%; height:auto; object-fit:contain;" />
+        </div>
+
+        <!-- Greeting -->
+        <h2 style="font-size:24px; font-weight:800; margin-bottom:16px; letter-spacing:-0.2px;">
+          Hi ${donorName}!<br/>Your donation will soon reach its recipient!
+        </h2>
+
+        <!-- Message -->
+        <p style="font-size:15px; line-height:1.6; margin:0 auto 24px; max-width:480px; padding:0 16px;">
+          We're excited to inform you that a volunteer has been assigned to deliver your donation. Below are the volunteer's details for your reference.
+        </p>
+
+        <!-- Volunteer Details -->
+        <h2 style="font-size:20px; font-weight:800; margin-bottom:16px; letter-spacing:-0.2px;">Volunteer Details</h2>
+        <p style="font-size:15px; line-height:1.6; margin:0 auto 24px; max-width:480px; text-align:left;">
+          <strong>Name:</strong> ${volunteerName}<br/>
+          <strong>Email:</strong> <a href="mailto:${volunteerEmail}">${volunteerEmail}</a><br/>
+          <strong>Contact:</strong> <a href="tel:${volunteerContact}">${volunteerContact}</a><br/>
+        </p>
+
+        <!-- Next Steps -->
+        <h2 style="font-size:20px; font-weight:800; margin-bottom:16px; letter-spacing:-0.2px;">Next Steps</h2>
+        <p style="font-size:15px; line-height:1.6; margin:0 auto 24px; max-width:480px;">
+          You may contact the volunteer if you have any special instructions or questions. Please ensure your donation is ready and accessible for pickup. Thank you for making a difference!
+        </p>
+
+        <!-- Footer -->
+        <div class="divider" style="height:1px; background:rgb(242, 233, 185); margin:24px auto; max-width:80%;"></div>
+        <p class="footer-text" style="font-size:12px; line-height:1.5; margin:0 0 16px;">
+          This email was sent to ${donorEmail}. If you received this by mistake, you can ignore it.
+        </p>
+      </div>
+    `;
+
+    // Attach logo
+    const logoPath = "./././assets/Logo.png";
+
+    await this.transporter.sendMail({
+      from,
+      to: donorEmail,
+      subject: 'Naimat - Volunteer Assigned for Your Donation Delivery',
+      html,
+      attachments: [
+        {
+          filename: 'logo.png',
+          path: logoPath,
+          cid: 'logo'
+        }
+      ]
+    });
+  }
 }

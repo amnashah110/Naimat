@@ -8,6 +8,7 @@ import pin from "../assets/location-dot-solid-full.svg";
 import applaud from "../assets/wired-outline-1092-applause-hover-pinch.gif";
 import headerPNG from "../assets/IMG_9076.PNG";
 import { useUser } from "../context/UserContext";
+import TermsCond from "../components/TermsCond";
 
 function Volunteer() {
   const { user, checkAuthError } = useUser();
@@ -21,13 +22,22 @@ function Volunteer() {
   const [detailsView, setDetailsView] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [confirmMessage, setConfirmMessage] = useState(false);
+  const [showVolunteerForm, setShowVolunteerForm] = useState(false);
+  const [volunteerContact, setVolunteerContact] = useState({
+    phone: "",
+    email: ""
+  });
+  const [volunteerError, setVolunteerError] = useState("");
+  const [showTerms, setShowTerms] = useState(false);
+  const [showEmailSending, setShowEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   // Fetch delivery posts from backend
   useEffect(() => {
     const fetchDeliveryPosts = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3000/delivery-post/all');
+        const response = await fetch('naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/delivery-post/all');
         if (!response.ok) {
           throw new Error('Failed to fetch delivery posts');
         }
@@ -92,6 +102,104 @@ function Volunteer() {
       ? new Date(b.date) - new Date(a.date)
       : new Date(a.date) - new Date(b.date);
   });
+
+  const handleVolunteerClick = (donation) => {
+    setSelectedDonation(donation);
+    setShowVolunteerForm(true);
+  };
+
+  const handleSubmitVolunteer = () => {
+    // Validate phone and email
+    const phoneRegex = /^\d{11}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!volunteerContact.phone || !volunteerContact.email) {
+      setVolunteerError("Please provide both phone number and email");
+      return;
+    }
+
+    if (!phoneRegex.test(volunteerContact.phone)) {
+      setVolunteerError("Please enter a valid 11-digit phone number");
+      return;
+    }
+
+    if (!emailRegex.test(volunteerContact.email)) {
+      setVolunteerError("Please enter a valid email address");
+      return;
+    }
+
+    setVolunteerError("");
+    setShowVolunteerForm(false);
+    setShowTerms(true);
+  };
+
+  const notifyDonorAboutVolunteer = async (deliveryPostId) => {
+    try {
+      setShowEmailSending(true);
+      setEmailSent(false);
+
+      const token = localStorage.getItem("access_token");
+
+      console.log('Attempting to notify donor about volunteer for delivery post:', deliveryPostId);
+      console.log('Token exists:', !!token);
+      console.log('User:', user);
+      console.log('Volunteer contact:', volunteerContact);
+
+      if (!token) {
+        console.error('No access token found');
+        setShowEmailSending(false);
+        alert('Please log in again to continue');
+        return;
+      }
+
+      // Get volunteer name from user context
+      const volunteerName = user?.name || "Volunteer";
+
+      const requestBody = {
+        volunteerName: volunteerName,
+        volunteerEmail: volunteerContact.email,
+        volunteerContact: volunteerContact.phone,
+      };
+
+      console.log('Sending request to notify donor:', requestBody);
+
+      // Send email notification to donor
+      const response = await fetch(`naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/delivery-post/notify-donor/${deliveryPostId}`, {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('Response status:', response.status);
+
+      // Check if authentication failed
+      if (checkAuthError(response)) {
+        setShowEmailSending(false);
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error response:', errorData);
+        setShowEmailSending(false);
+        throw new Error(errorData.message || 'Failed to notify donor');
+      }
+
+      const result = await response.json();
+      console.log('Donor notified successfully:', result);
+
+      // Show success state
+      setEmailSent(true);
+
+    } catch (error) {
+      console.error('Error notifying donor:', error);
+      setShowEmailSending(false);
+      alert('Failed to notify donor: ' + error.message);
+    }
+  };
 
   return (
     <div className="form" style={{ paddingTop: "80px" }}>
@@ -278,20 +386,12 @@ function Volunteer() {
 
                 <div
                   className="donation-actions"
-                  onClick={() => {
-                    setDetailsView(false);
-                    setConfirmMessage(true);
-                  }}
                 >
-                  <button className="accept-btn">Volunteer</button>
-                  <button
-                    className="details-btn"
-                    onClick={() => {
-                      setSelectedDonation(d);
-                      setDetailsView(true);
-                    }}
+                  <button 
+                    className="accept-btn"
+                    onClick={() => handleVolunteerClick(d)}
                   >
-                    View Details
+                    Volunteer
                   </button>
                 </div>
               </div>
@@ -504,6 +604,257 @@ function Volunteer() {
             >
               Acknowledged!
             </button>
+          </div>
+        </>
+      )}
+
+      {/* TERMS AND CONDITIONS */}
+      {showTerms && (
+        <TermsCond
+          userType="volunteer"
+          deliveryMode="delivery"
+          onAgree={async () => {
+            setShowTerms(false);
+            // Notify donor about volunteer
+            if (selectedDonation && selectedDonation.deliverypost_id) {
+              await notifyDonorAboutVolunteer(selectedDonation.deliverypost_id);
+            }
+          }}
+          onDisagree={() => {
+            setShowTerms(false);
+            // Reset states when user disagrees
+            setVolunteerContact({ phone: "", email: "" });
+          }}
+        />
+      )}
+
+      {/* VOLUNTEER CONTACT FORM */}
+      {showVolunteerForm && (
+        <>
+          <div
+            className="overlay-screen"
+            onClick={() => {
+              setShowVolunteerForm(false);
+              setVolunteerError("");
+              setVolunteerContact({ phone: "", email: "" });
+            }}
+          />
+          <div className="details-modal">
+            <button
+              className="close-details-btn"
+              onClick={() => {
+                setShowVolunteerForm(false);
+                setVolunteerError("");
+                setVolunteerContact({ phone: "", email: "" });
+              }}
+            >
+              ✕
+            </button>
+
+            <div className="details-header">
+              <h2 className="details-caption">Enter Your Contact Details</h2>
+              <p className="details-type">
+                Please provide your contact information so we can coordinate the delivery
+              </p>
+            </div>
+
+            <div className="details-content">
+              {volunteerError && (
+                <div
+                  className="error-message"
+                  style={{
+                    color: "#ff6b6b",
+                    marginBottom: "20px",
+                    padding: "10px",
+                    backgroundColor: "rgba(255, 107, 107, 0.1)",
+                    borderRadius: "8px",
+                    fontWeight: "500",
+                    textAlign: "center",
+                  }}
+                >
+                  {volunteerError}
+                </div>
+              )}
+
+              <div className="details-section" style={{ marginBottom: "20px" }}>
+                <h3>Phone Number</h3>
+                <input
+                  type="tel"
+                  placeholder="Enter 11-digit phone number"
+                  value={volunteerContact.phone}
+                  onChange={(e) => setVolunteerContact({ ...volunteerContact, phone: e.target.value.replace(/\D/g, '') })}
+                  maxLength="11"
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "12px 15px",
+                    fontSize: "1rem",
+                    border: "2px solid #f2e9b9",
+                    borderRadius: "8px",
+                    backgroundColor: "#2d3748",
+                    color: "#f2e9b9",
+                    fontFamily: "DM Mono",
+                    outline: "none",
+                    transition: "border-color 0.3s",
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#e2d7a0"}
+                  onBlur={(e) => e.target.style.borderColor = "#f2e9b9"}
+                />
+              </div>
+
+              <div className="details-section">
+                <h3>Email Address</h3>
+                <input
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={volunteerContact.email}
+                  onChange={(e) => setVolunteerContact({ ...volunteerContact, email: e.target.value })}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "12px 15px",
+                    fontSize: "1rem",
+                    border: "2px solid #f2e9b9",
+                    borderRadius: "8px",
+                    backgroundColor: "#2d3748",
+                    color: "#f2e9b9",
+                    fontFamily: "DM Mono",
+                    outline: "none",
+                    transition: "border-color 0.3s",
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#e2d7a0"}
+                  onBlur={(e) => e.target.style.borderColor = "#f2e9b9"}
+                />
+              </div>
+            </div>
+
+            <button
+              className="accept-details-btn"
+              onClick={handleSubmitVolunteer}
+              style={{
+                textTransform: "uppercase",
+                fontWeight: "bold",
+                fontSize: "large",
+                marginTop: "20px",
+              }}
+            >
+              Confirm Volunteering
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* TERMS AND CONDITIONS */}
+      {showTerms && (
+        <TermsCond
+          userType="volunteer"
+          deliveryMode="delivery"
+          onAgree={async () => {
+            setShowTerms(false);
+            // Notify donor about volunteer
+            if (selectedDonation && selectedDonation.deliverypost_id) {
+              await notifyDonorAboutVolunteer(selectedDonation.deliverypost_id);
+            }
+          }}
+          onDisagree={() => {
+            setShowTerms(false);
+            // Reset states when user disagrees
+            setVolunteerContact({ phone: "", email: "" });
+          }}
+        />
+      )}
+
+      {/* EMAIL SENDING POPUP */}
+      {showEmailSending && (
+        <>
+          <div className="overlay-screen" />
+          <div className="details-modal" style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyItems: "center",
+            alignItems: "center",
+            gap: "1.5rem",
+            height: "fit-content",
+            padding: "2rem 1rem",
+          }}>
+            {!emailSent ? (
+              <>
+                {/* Loading state */}
+                <div style={{
+                  width: "60px",
+                  height: "60px",
+                  border: "4px solid rgba(242, 233, 185, 0.3)",
+                  borderTop: "4px solid #f2e9b9",
+                  borderRadius: "50%",
+                  animation: "spin 1s linear infinite",
+                }} />
+                <style>{`
+                  @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                  }
+                `}</style>
+                <div style={{
+                  fontSize: "1.2rem",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  fontFamily: "DM Mono",
+                  color: "#f2e9b9",
+                }}>
+                  Sending your details to donor...
+                </div>
+                <div style={{
+                  fontSize: "0.95rem",
+                  textAlign: "center",
+                  fontFamily: "DM Mono",
+                  color: "#e2d7a0",
+                  opacity: 0.8,
+                }}>
+                  Please wait a moment
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Success state */}
+                <img src={applaud} style={{
+                  width: "25%",
+                }} alt="Success" />
+                <div style={{
+                  fontSize: "1.2rem",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  fontFamily: "DM Mono",
+                  color: "#f2e9b9",
+                }}>
+                  Email sent to donor!
+                </div>
+                <div style={{
+                  fontSize: "0.95rem",
+                  textAlign: "center",
+                  fontFamily: "DM Mono",
+                  color: "#e2d7a0",
+                  lineHeight: "1.6",
+                  padding: "0 1rem",
+                }}>
+                  Please wait till they reach out to you for coordination.
+                </div>
+                <button
+                  className="accept-btn"
+                  onClick={() => {
+                    setShowEmailSending(false);
+                    setEmailSent(false);
+                    setConfirmMessage(true);
+                  }}
+                  style={{
+                    fontSize: "large",
+                    textTransform: "uppercase",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Got it!
+                </button>
+              </>
+            )}
           </div>
         </>
       )}
