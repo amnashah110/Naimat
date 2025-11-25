@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Put, Req, UseGuards, Param, NotFoundException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -11,6 +11,25 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   async getUserProfile(@Req() req) {
     return await this.userService.findById(req.user.id);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async getUserById(@Param('id') id: string) {
+    const userId = parseInt(id, 10);
+    if (isNaN(userId)) {
+      throw new NotFoundException('Invalid user ID');
+    }
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    // Return only necessary fields for privacy
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    };
   }
 
   @Put('update')

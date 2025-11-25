@@ -11,6 +11,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { DonationModule } from './donation/donation.module';
+import { DeliveryPostModule } from './deliveryPost/deliverypost.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { DonationModule } from './donation/donation.module';
     }),
     AuthModule,
     UserModule,
-    DonationModule
+    DonationModule,
+    DeliveryPostModule
   ],
   controllers: [AppController],
   providers: [

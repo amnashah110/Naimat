@@ -5,11 +5,12 @@ import { Menu, X } from "lucide-react"; // ✅ for hamburger icons (install: npm
 import { useUser } from "../context/UserContext";
 
 const Navbar = () => {
-  const { logout } = useUser();
+  const { logout, user } = useUser();
   const [userRole, setUserRole] = useState("donor");
   const [isFullScreen, setIsFullScreen] = useState(window.innerWidth >= 1024);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -21,8 +22,7 @@ const Navbar = () => {
 
   const navLinks = [
     { to: "/dashboard", label: "Dashboard" },
-    { to: "/profile", label: "Profile" },
-    { to: "#", label: "Logout", onClick: handleLogout },
+    { to: "/my-donations", label: "My Donations" },
   ];
 
   const getLinkStyle = (linkName, path) => {
@@ -107,29 +107,88 @@ const Navbar = () => {
             marginRight: "4%",
           }}
         >
-          {navLinks.map(({ to, label, onClick }) => (
-            onClick ? (
-              <span
-                key={label}
-                onClick={onClick}
-                style={{...getLinkStyle(label, to), cursor: 'pointer'}}
-                onMouseEnter={() => setHoveredLink(label)}
-                onMouseLeave={() => setHoveredLink(null)}
-              >
-                {label}
-              </span>
-            ) : (
-              <Link
-                key={to}
-                to={to}
-                style={getLinkStyle(label, to)}
-                onMouseEnter={() => setHoveredLink(label)}
-                onMouseLeave={() => setHoveredLink(null)}
-              >
-                {label}
-              </Link>
-            )
+          {navLinks.map(({ to, label }) => (
+            <Link
+              key={to}
+              to={to}
+              style={getLinkStyle(label, to)}
+              onMouseEnter={() => setHoveredLink(label)}
+              onMouseLeave={() => setHoveredLink(null)}
+            >
+              {label}
+            </Link>
           ))}
+
+          {/* User Dropdown */}
+          <div style={{ position: "relative" }}>
+            <div
+              onClick={() => setShowDropdown(!showDropdown)}
+              style={{
+                color: "rgba(255, 248, 224, 1)",
+                fontSize: "1.1em",
+                cursor: "pointer",
+                fontFamily: "DM Sans",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px"
+              }}
+            >
+              Welcome, {user?.name.split(" ")[0] || "User"} ▼
+            </div>
+            
+            {showDropdown && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  right: 0,
+                  marginTop: "8px",
+                  backgroundColor: "rgba(0, 0, 0, 0.95)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  borderRadius: "8px",
+                  padding: "8px 0",
+                  minWidth: "150px",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
+                  zIndex: 5000
+                }}
+              >
+                <div
+                  onClick={() => {
+                    navigate("/profile");
+                    setShowDropdown(false);
+                  }}
+                  style={{
+                    padding: "10px 20px",
+                    color: "rgba(255, 248, 224, 1)",
+                    cursor: "pointer",
+                    fontSize: "1em",
+                    transition: "background-color 0.2s",
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = "rgba(255, 255, 255, 0.1)"}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = "transparent"}
+                >
+                  Profile
+                </div>
+                <div
+                  onClick={() => {
+                    handleLogout();
+                    setShowDropdown(false);
+                  }}
+                  style={{
+                    padding: "10px 20px",
+                    color: "rgba(255, 248, 224, 1)",
+                    cursor: "pointer",
+                    fontSize: "1em",
+                    transition: "background-color 0.2s",
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = "rgba(255, 255, 255, 0.1)"}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = "transparent"}
+                >
+                  Logout
+                </div>
+              </div>
+            )}
+          </div>
 
         </div>
       ) : (
@@ -165,36 +224,61 @@ const Navbar = () => {
                 borderTop: "1px solid rgba(255, 255, 255, 0.2)",
               }}
             >
-              {navLinks.map(({ to, label, onClick }) => (
-                onClick ? (
-                  <span
-                    key={label}
-                    onClick={() => {
-                      onClick();
-                      setIsMenuOpen(false);
-                    }}
-                    style={{
-                      ...getLinkStyle(label, to),
-                      fontSize: "1.2rem",
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {label}
-                  </span>
-                ) : (
-                  <Link
-                    key={to}
-                    to={to}
-                    style={{
-                      ...getLinkStyle(label, to),
-                      fontSize: "1.2rem",
-                    }}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {label}
-                  </Link>
-                )
+              {navLinks.map(({ to, label }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  style={{
+                    ...getLinkStyle(label, to),
+                    fontSize: "1.2rem",
+                  }}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {label}
+                </Link>
               ))}
+
+              <div
+                style={{
+                  color: "rgba(255, 248, 224, 1)",
+                  fontSize: "1.2rem",
+                  fontFamily: "DM Sans",
+                  padding: "0.5rem 0",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
+                  width: "80%",
+                  textAlign: "center"
+                }}
+              >
+                Logged in as {user?.name || "User"}
+              </div>
+
+              <span
+                onClick={() => {
+                  navigate("/profile");
+                  setIsMenuOpen(false);
+                }}
+                style={{
+                  ...getLinkStyle("Profile", "/profile"),
+                  fontSize: "1.2rem",
+                  cursor: 'pointer',
+                }}
+              >
+                Profile
+              </span>
+
+              <span
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }}
+                style={{
+                  ...getLinkStyle("Logout", "#"),
+                  fontSize: "1.2rem",
+                  cursor: 'pointer',
+                }}
+              >
+                Logout
+              </span>
 
             </div>
           )}

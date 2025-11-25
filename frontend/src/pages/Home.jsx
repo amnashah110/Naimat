@@ -1,4 +1,5 @@
 import { React, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/Home.css";
 import "../styles/animations.css";
 import headerPNG from "../assets/IMG_9076.PNG";
@@ -6,12 +7,11 @@ import Logo from "../assets/Logo.png";
 import one from "../assets/IMG_9074.PNG";
 import two from "../assets/IMG_9075.PNG";
 import three from "../assets/IMG_9077.PNG";
-import google from "../assets/google.png";
-import { Eye, EyeOff } from "lucide-react";
 import { useUser } from "../context/UserContext";
 
 function Home() {
   const { refreshUser } = useUser();
+  const navigate = useNavigate();
   const missionTexts = [
     {
       id: 1,
@@ -88,7 +88,7 @@ function Home() {
     setError("");
     
     try {
-      const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/auth/passwordless/requestcode", {
+      const response = await fetch("http://localhost:3000/auth/passwordless/requestcode", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -122,7 +122,7 @@ function Home() {
     setError("");
     
     try {
-      const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/auth/passwordless/verifycode", {
+      const response = await fetch("http://localhost:3000/auth/passwordless/verifycode", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -172,7 +172,7 @@ function Home() {
     setError("");
     
     try {
-      const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/auth/signup", {
+      const response = await fetch("http://localhost:3000/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -222,7 +222,7 @@ function Home() {
         {/* Buttons */}
         <div className="navbar-right">
           <button className="signup-button" onClick={() => setLoginTab(true)}>
-            SIGN UP
+            LOGIN/SIGNUP
           </button>
         </div>
       </nav>
@@ -368,13 +368,6 @@ function Home() {
                 {/* STEP 1: Login Option */}
                 {step === 1 && (
                   <>
-                    <button type="button" className="google-btn">
-                      <img src={google} alt="Google" />
-                      Log In with Google
-                    </button>
-
-                    <div className="or-divider">OR</div>
-
                     {error && <p className="error-text" style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
 
                     <form
@@ -425,11 +418,12 @@ function Home() {
                         const result = await handleVerifyOTP(email, otp, false);
                         
                         if (result && result.verified) {
-                          alert("Logged in successfully!");
-                          refreshUser(); // Refresh user context
+                          // Refresh user context and wait for it to complete
+                          await refreshUser();
                           setLoginTab(false);
-                          // Redirect to dashboard or home page
-                          window.location.href = "/dashboard";
+                          alert("Logged in successfully!");
+                          // Navigate to dashboard
+                          navigate("/dashboard");
                         }
                       }}
                     >
@@ -467,13 +461,6 @@ function Home() {
                 {/* STEP 1: Choose Method */}
                 {step === 1 && (
                   <>
-                    <button type="button" className="google-btn">
-                      <img src={google} alt="Google" />
-                      Sign Up with Google
-                    </button>
-
-                    <div className="or-divider">OR</div>
-
                     {error && <p className="error-text" style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
 
                     <form
@@ -571,11 +558,12 @@ function Home() {
                         const result = await handleSignupUser(userData);
                         
                         if (result) {
-                          alert("User Registered Successfully! You are now logged in.");
-                          refreshUser(); // Refresh user context
+                          // Refresh user context and wait for it to complete
+                          await refreshUser();
                           setLoginTab(false);
-                          // Redirect to dashboard
-                          window.location.href = "/dashboard";
+                          alert("User Registered Successfully! You are now logged in.");
+                          // Navigate to dashboard
+                          navigate("/dashboard");
                         }
                       }}
                     >

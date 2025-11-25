@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import MapComponent from "../components/MapComponent";
 import "../styles/Form.css";
@@ -6,100 +6,14 @@ import "../styles/receiver.css";
 import calendar from "../assets/calendar-days-solid-full.svg";
 import pin from "../assets/location-dot-solid-full.svg";
 import applaud from "../assets/wired-outline-1092-applause-hover-pinch.gif";
+import headerPNG from "../assets/IMG_9076.PNG";
+import { useUser } from "../context/UserContext";
 
 function Volunteer() {
-  const donationsData = [
-    {
-      id: 1,
-      type: "Food",
-      date: "2025-11-10",
-      pickup_address: "Gulshan-e-Iqbal, Karachi",
-      pickup_coordinates: [24.8515, 67.0738],
-      destination_address: "Edhi Centre, Karachi",
-      destination_coordinates: [24.8701, 67.0403],
-      caption: "Fresh Homemade Biryani",
-      smart_tags: "non-veg",
-      ingredients: ["Basmati Rice", "Chicken", "Onions", "Yogurt", "Spices"],
-      azure_tags: ["Indian", "Rice-based", "Non-vegetarian"],
-      storage: "refrigerated",
-      expiry: "2-3 days",
-      allergens: ["Sesame", "Celery"],
-      meal_type: "dinner",
-      food_category: "cooked",
-    },
-    {
-      id: 2,
-      type: "Food",
-      date: "2025-11-08",
-      pickup_address: "Model Town, Lahore",
-      pickup_coordinates: [31.5497, 74.3436],
-      destination_address: "Saylani Welfare Centre, Lahore",
-      destination_coordinates: [31.5204, 74.3587],
-      caption: "Packaged Organic Cereal Boxes",
-      smart_tags: "vegetarian",
-      ingredients: ["Oats", "Honey", "Almonds", "Raisins"],
-      azure_tags: ["Breakfast", "Organic", "Packaged"],
-      storage: "room temperature",
-      expiry: "6 months",
-      allergens: ["Tree Nuts", "Gluten"],
-      meal_type: "breakfast",
-      food_category: "packaged",
-    },
-    {
-      id: 3,
-      type: "Food",
-      date: "2025-11-12",
-      pickup_address: "University Road, Peshawar",
-      pickup_coordinates: [34.1526, 71.5769],
-      destination_address: "Alkhidmat Centre, Peshawar",
-      destination_coordinates: [34.0206, 71.5785],
-      caption: "Fresh Vegetables Bundle",
-      smart_tags: "vegetarian",
-      ingredients: ["Tomatoes", "Cucumbers", "Bell Peppers"],
-      azure_tags: ["Vegetables", "Fresh", "Organic"],
-      storage: "room temperature",
-      expiry: "5-7 days",
-      allergens: "None",
-      meal_type: "snack",
-      food_category: "fresh_raw",
-    },
-    {
-      id: 4,
-      type: "Food",
-      date: "2025-11-09",
-      pickup_address: "Saddar, Rawalpindi",
-      pickup_coordinates: [33.5731, 73.1898],
-      destination_address: "Edhi Home, Rawalpindi",
-      destination_coordinates: [33.6, 73.05],
-      caption: "Homemade Chicken Karahi",
-      smart_tags: "non-veg",
-      ingredients: ["Chicken", "Tomatoes", "Ginger"],
-      azure_tags: ["Pakistani", "Spiced", "Dinner"],
-      storage: "refrigerated",
-      expiry: "1-2 days",
-      allergens: ["Garlic"],
-      meal_type: "dinner",
-      food_category: "cooked",
-    },
-    {
-      id: 5,
-      type: "Food",
-      date: "2025-11-07",
-      pickup_address: "Defence, Karachi",
-      pickup_coordinates: [24.7898, 67.0756],
-      destination_address: "Saylani Centre, Karachi",
-      destination_coordinates: [24.86, 67.01],
-      caption: "Fresh Mixed Fruits Collection",
-      smart_tags: "vegetarian",
-      ingredients: ["Apples", "Bananas", "Oranges"],
-      azure_tags: ["Fruits", "Fresh", "Seasonal"],
-      storage: "room temperature",
-      expiry: "4-6 days",
-      allergens: "None",
-      meal_type: "snack",
-      food_category: "fresh_raw",
-    },
-  ];
+  const { user, checkAuthError } = useUser();
+  const [donationsData, setDonationsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [filter, setFilter] = useState("All");
   const [sort, setSort] = useState("Newest");
@@ -107,6 +21,67 @@ function Volunteer() {
   const [detailsView, setDetailsView] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [confirmMessage, setConfirmMessage] = useState(false);
+
+  // Fetch delivery posts from backend
+  useEffect(() => {
+    const fetchDeliveryPosts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:3000/delivery-post/all');
+        if (!response.ok) {
+          throw new Error('Failed to fetch delivery posts');
+        }
+        const data = await response.json();
+
+        // Transform backend data to match frontend structure
+        const transformedData = data.map(delivery => {
+          const foodpost = delivery.foodpost;
+          let llmData = {};
+          try {
+            llmData = foodpost.llm_response ? JSON.parse(foodpost.llm_response) : {};
+          } catch (e) {
+            console.error('Error parsing LLM response:', e);
+          }
+
+          return {
+            id: delivery.id,
+            deliverypost_id: delivery.id,
+            foodpost_id: foodpost.id,
+            type: "Food",
+            date: foodpost.posting_date ? new Date(foodpost.posting_date).toISOString().split('T')[0] : "",
+            pickup_address: `Lat: ${foodpost.latitude?.toFixed(4)}, Lon: ${foodpost.longitude?.toFixed(4)}`,
+            pickup_coordinates: [foodpost.latitude || 24.8607, foodpost.longitude || 67.0011],
+            destination_address: delivery.latitude && delivery.longitude 
+              ? `Lat: ${delivery.latitude?.toFixed(4)}, Lon: ${delivery.longitude?.toFixed(4)}`
+              : "Destination not set",
+            destination_coordinates: [delivery.latitude || 24.8607, delivery.longitude || 67.0011],
+            caption: llmData.category?.caption || foodpost.description || "No description",
+            smart_tags: llmData.category?.smart_tags?.[0] || "veg",
+            ingredients: llmData.category?.ingredients || [],
+            azure_tags: llmData.category?.azure_tags || [],
+            storage: llmData.category?.storage || "room temperature",
+            expiry: llmData.expiry?.expiry_date || llmData.category?.expiry || "Not specified",
+            allergens: llmData.category?.allergens || [],
+            meal_type: llmData.category?.meal_type?.[0] || "any",
+            food_category: foodpost.category || "cooked",
+            picture_url: llmData.image_url || foodpost.picture_url,
+            quantity: foodpost.quantity || null,
+          };
+        });
+
+        console.log("Transformed delivery data:", transformedData);
+        setDonationsData(transformedData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching delivery posts:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDeliveryPosts();
+  }, []);
 
   const filteredDonations = donationsData.filter(
     (d) => filter === "All" || d.food_category === filter
@@ -121,6 +96,7 @@ function Volunteer() {
   return (
     <div className="form" style={{ paddingTop: "80px" }}>
       <Navbar />
+      <img className="img" src={headerPNG} alt="Header decoration" />
 
       <div className="donations-body">
         <div className="filter-sort-bar">
@@ -154,13 +130,64 @@ function Volunteer() {
         </div>
 
         <section className="donations">
+          {loading && <div className="loading-message">Loading delivery requests...</div>}
+          {error && <div className="error-message">Error: {error}</div>}
           <div className="donation-list">
+            {!loading && !error && sortedDonations.length === 0 && (
+              <div className="no-donations-message" style={{
+                textAlign: 'center',
+                padding: '2rem',
+                color: '#f2e9b9',
+                fontSize: '1.2rem',
+                fontFamily: 'DM Mono'
+              }}>
+                No delivery requests available at the moment.
+              </div>
+            )}
             {sortedDonations.map((d, index) => (
               <div
                 key={d.id}
                 className="donation-card"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
+                {d.picture_url && (
+                  <div style={{ position: 'relative' }}>
+                    <img
+                      src={d.picture_url}
+                      alt={d.caption}
+                      className="donation-image"
+                      style={{
+                        width: "100%",
+                        height: "200px",
+                        objectFit: "cover",
+                        borderRadius: "8px 8px 0 0",
+                        marginBottom: "1rem"
+                      }}
+                    />
+                    {d.quantity && d.quantity > 0 && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '8px',
+                          left: '8px',
+                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                          borderRadius: '10px',
+                          padding: '6px 10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '0.9rem',
+                          fontWeight: 'bold',
+                          color: '#f2e9b9',
+                          border: '2px solid #f2e9b9',
+                          backdropFilter: 'blur(4px)'
+                        }}
+                      >
+                        <span>{d.quantity} Available</span>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="donation-info">
                   <h3 className="donation-type">{d.caption}</h3>
 
@@ -169,41 +196,84 @@ function Volunteer() {
                       display: "flex",
                       alignItems: "center",
                       gap: "8px",
+                      marginTop: "8px",
                     }}
                   >
-                    <img src={calendar} style={{ width: "6%" }} />
+                    <img src={calendar} style={{ width: "6%" }} alt="Calendar icon" />
                     <div className="donation-date">
-                      {new Date(d.date).toLocaleDateString()}
+                      {d.date
+                        ? new Date(d.date).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                          })
+                        : ""}
                     </div>
                   </div>
 
-                  {/* Pickup */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <img src={pin} style={{ width: "6%" }} />
-                    <div className="donation-address">
-                      <strong>Pickup:</strong> {d.pickup_address}
+                  {/* Pickup Location (from foodpost) */}
+                  {d.pickup_coordinates && d.pickup_coordinates.length === 2 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginTop: "8px",
+                      }}
+                    >
+                      <img src={pin} style={{ width: "6%" }} alt="Location pin" />
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <strong style={{ fontSize: "0.85rem", color: "#f2e9b9" }}>Pickup:</strong>
+                        <a
+                          href={`https://www.google.com/maps?q=${d.pickup_coordinates[0]},${d.pickup_coordinates[1]}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "#87CEEB",
+                            textDecoration: "none",
+                            fontWeight: "500",
+                            fontSize: "0.9rem",
+                          }}
+                          onMouseOver={(e) => e.target.style.textDecoration = "underline"}
+                          onMouseOut={(e) => e.target.style.textDecoration = "none"}
+                        >
+                          View Donor Location
+                        </a>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Destination */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <img src={pin} style={{ width: "6%" }} />
-                    <div className="donation-address">
-                      <strong>Destination:</strong> {d.destination_address}
+                  {/* Destination Location (from delivery_post) */}
+                  {d.destination_coordinates && d.destination_coordinates.length === 2 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginTop: "8px",
+                      }}
+                    >
+                      <img src={pin} style={{ width: "6%" }} alt="Location pin" />
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <strong style={{ fontSize: "0.85rem", color: "#f2e9b9" }}>Drop-off:</strong>
+                        <a
+                          href={`https://www.google.com/maps?q=${d.destination_coordinates[0]},${d.destination_coordinates[1]}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "#87CEEB",
+                            textDecoration: "none",
+                            fontWeight: "500",
+                            fontSize: "0.9rem",
+                          }}
+                          onMouseOver={(e) => e.target.style.textDecoration = "underline"}
+                          onMouseOut={(e) => e.target.style.textDecoration = "none"}
+                        >
+                          View Delivery Location
+                        </a>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 <div
@@ -213,7 +283,7 @@ function Volunteer() {
                     setConfirmMessage(true);
                   }}
                 >
-                  <button className="accept-btn">Accept Pickup</button>
+                  <button className="accept-btn">Volunteer</button>
                   <button
                     className="details-btn"
                     onClick={() => {

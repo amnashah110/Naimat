@@ -17,4 +17,13 @@ export class User
 
     @Column({default: "Email"})
     auth_provider: string;
+
+    @Column({type: "integer", default: 0})
+    num_donations: number;
+
+    @Column({type: "integer", default: 0})
+    num_volunteered: number;
+
+    @Column({type: "integer", default: 0})
+    num_donations_success: number;
 }

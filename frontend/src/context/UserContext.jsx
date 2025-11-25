@@ -22,7 +22,7 @@ export const UserProvider = ({ children }) => {
         return;
       }
 
-      const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/user/profile", {
+      const response = await fetch("http://localhost:3000/user/profile", {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -31,23 +31,41 @@ export const UserProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         setUser(data);
+      } else if (response.status === 401 || response.status === 403) {
+        // Token expired or invalid - logout user
+        console.log("Session expired, logging out...");
+        logout();
       }
     } catch (err) {
       console.error("Error fetching user profile:", err);
+      // On network error, also logout to be safe
+      logout();
     } finally {
       setLoading(false);
     }
   };
 
-  const refreshUser = () => {
+  const refreshUser = async () => {
     setLoading(true);
-    fetchUserProfile();
+    await fetchUserProfile();
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+    // Redirect to home page
+    window.location.href = '/';
+  };
+
+  // Helper function to check auth status on API calls
+  const checkAuthError = (response) => {
+    if (response.status === 401 || response.status === 403) {
+      console.log("Authentication failed, logging out...");
+      logout();
+      return true;
+    }
+    return false;
   };
 
   useEffect(() => {
@@ -55,7 +73,7 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, loading, refreshUser, logout }}>
+    <UserContext.Provider value={{ user, loading, refreshUser, logout, checkAuthError }}>
       {children}
     </UserContext.Provider>
   );

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere } from 'typeorm';
+import { Repository, FindOptionsWhere, IsNull } from 'typeorm';
 import { DeliveryPost } from '../entities/deliverypost.entity';
 
 @Injectable()
@@ -13,8 +13,10 @@ export class DeliveryPostService {
   // 1. create an entry when delivery is chosen
   async createDelivery(data: {
     foodpost_id: number;
-    rider_id: number;
-    shipment_date: Date;
+    rider_id?: number;
+    recipient_id?: number;
+    latitude?: number;
+    longitude?: number;
   }) {
     const entry = this.repo.create(data);
     return await this.repo.save(entry);
@@ -22,7 +24,12 @@ export class DeliveryPostService {
 
   // 2. show all
   async findAll() {
-    return await this.repo.find({ relations: ['foodpost'] });
+    return await this.repo.find({ 
+      relations: ['foodpost'],
+      where: {
+        rider_id: IsNull(), // Only show unassigned deliveries
+      }
+    });
   }
 
   // 3. find specific using any field

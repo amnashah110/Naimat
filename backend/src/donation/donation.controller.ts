@@ -2,12 +2,16 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
+  Param,
   UploadedFile,
   UseInterceptors,
   BadRequestException,
   Body,
   Req,
   UseGuards,
+  NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage, memoryStorage } from 'multer';
@@ -17,12 +21,18 @@ import { createReadStream } from 'fs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FoodPost } from '../entities/foodpost.entity';
+import { User } from '../entities/user.entity';
 import axios from 'axios';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { EmailService } from '../auth/strategies/passwordless-auth/services/email.service';
 
 @Controller('donation')  // <-- defines /donation route
 export class DonationController {
-  constructor(@InjectRepository(FoodPost) private readonly foodPostRepo: Repository<FoodPost>) {}
+  constructor(
+    @InjectRepository(FoodPost) private readonly foodPostRepo: Repository<FoodPost>,
+    @InjectRepository(User) private readonly userRepo: Repository<User>,
+    private readonly emailService: EmailService
+  ) {}
   
   /**
    * Generate a SAS token for a blob URL
@@ -178,7 +188,6 @@ export class DonationController {
     @Body('foodType') foodType?: string,
     @Body('quantity') quantity?: string,
     @Body('expiry') expiry?: string,
-    @Body('contact') contact?: string,
     @Body('specialInstructions') specialInstructions?: string,
     @Body('description') description?: string,
     @Body('latitude') latitude?: string,
@@ -213,10 +222,6 @@ export class DonationController {
       }
     }
 
-    if (!contact || contact.trim().length < 3) {
-      throw new BadRequestException('contact (phone or email) is required');
-    }
-
     if (specialInstructions && specialInstructions.length > 500) {
       throw new BadRequestException('specialInstructions cannot exceed 500 characters');
     }
@@ -231,7 +236,6 @@ export class DonationController {
       quantity: Number(quantity),
       description,
       expiry: foodType === 'packaged' ? expiry : null,
-      contact,
       specialInstructions: specialInstructions || null,
       latitude: Number(latitude),
       longitude: Number(longitude),
@@ -279,10 +283,10 @@ export class DonationController {
             expiry_date: null,                                                    // 4. will be updated from AI response
             category: foodType,                                                   // 5. category (cooked/raw/packaged)
             special_instructions: specialInstructions || null,                    // 6. special instructions
-            contact_details: contact,                                             // 7. contact details
-            // llm_response: will be filled after AI call                         // 8. llm response
-            latitude: latitude ? parseFloat(latitude) : null,                     // 9. latitude
-            longitude: longitude ? parseFloat(longitude) : null,                  // 10. longitude
+            // llm_response: will be filled after AI call                         // 7. llm response
+            latitude: latitude ? parseFloat(latitude) : null,                     // 8. latitude
+            longitude: longitude ? parseFloat(longitude) : null,                  // 9. longitude
+            quantity: quantity ? parseInt(quantity) : null,                       // 10. quantity
             
             // Fields to leave empty/null:
             donor_id: req.user.id, // Set donor_id to logged-in user's id
@@ -294,7 +298,14 @@ export class DonationController {
 
           const saved = await this.foodPostRepo.save(post);
           (response as any).foodPostId = saved.id;
-          (response as any).foodPostId = saved.id;
+          
+          // Increment user's donation count
+          try {
+            await this.userRepo.increment({ id: req.user.id }, 'num_donations', 1);
+          } catch (userErr) {
+            console.error('Failed to increment user donation count:', userErr);
+          }
+          
           // Call LLM image analysis service
           try {
             const llmPayload = { blob_name: blobName, title: post.description, food_type: foodType };
@@ -327,5 +338,360 @@ export class DonationController {
 
 
     return response;
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async deleteDonation(
+    @Param('id') id: string,
+    @Req() req
+  ): Promise<{ success: boolean; message: string }> {
+    const donationId = parseInt(id, 10);
+    
+    if (isNaN(donationId)) {
+      throw new NotFoundException('Invalid donation ID');
+    }
+
+    // Find the donation
+    const donation = await this.foodPostRepo.findOne({
+      where: { id: donationId }
+    });
+
+    if (!donation) {
+      throw new NotFoundException('Donation not found');
+    }
+
+    // Verify the logged-in user is the donor
+    if (donation.donor_id !== req.user.id) {
+      throw new ForbiddenException('You can only delete your own donations');
+    }
+
+    try {
+      // Delete the image from Azure Blob Storage if it exists
+      if (donation.picture_url) {
+        try {
+          // Extract blob name from the URL
+          // Expected format: https://<account>.blob.core.windows.net/<container>/<blobname>?<sas>
+          const connStr = process.env.BLOB_CONNECTION_STRING;
+          if (connStr) {
+            const url = new URL(donation.picture_url.split('?')[0]); // Remove SAS token
+            const pathParts = url.pathname.split('/').filter(p => p);
+            
+            if (pathParts.length >= 2) {
+              const containerName = pathParts[0];
+              const blobName = pathParts.slice(1).join('/');
+              
+              // Create BlobServiceClient
+              const blobServiceClient = BlobServiceClient.fromConnectionString(connStr);
+              const containerClient = blobServiceClient.getContainerClient(containerName);
+              const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+              
+              await blockBlobClient.deleteIfExists();
+            }
+          }
+        } catch (blobErr) {
+          // Log blob deletion error but continue with database deletion
+          console.error('Error deleting blob:', blobErr);
+        }
+      }
+
+      // Delete the donation from database
+      await this.foodPostRepo.remove(donation);
+
+      // Decrement the user's donation counter
+      await this.userRepo.decrement({ id: req.user.id }, 'num_donations', 1);
+
+      return {
+        success: true,
+        message: 'Donation deleted successfully'
+      };
+    } catch (error) {
+      console.error('Error deleting donation:', error);
+      throw new Error('Failed to delete donation');
+    }
+  }
+
+  @Post('mark-delivered/:id')
+  @UseGuards(JwtAuthGuard)
+  async markAsDelivered(
+    @Param('id') id: string,
+    @Req() req
+  ): Promise<{ success: boolean; message: string }> {
+    const donationId = parseInt(id, 10);
+    
+    if (isNaN(donationId)) {
+      throw new NotFoundException('Invalid donation ID');
+    }
+
+    // Find the donation
+    const donation = await this.foodPostRepo.findOne({
+      where: { id: donationId }
+    });
+
+    if (!donation) {
+      throw new NotFoundException('Donation not found');
+    }
+
+    // Verify the logged-in user is the donor
+    if (donation.donor_id !== req.user.id) {
+      throw new ForbiddenException('You can only mark your own donations as delivered');
+    }
+
+    try {
+      // Delete the image from Azure Blob Storage if it exists
+      if (donation.picture_url) {
+        try {
+          // Extract blob name from the URL
+          const connStr = process.env.BLOB_CONNECTION_STRING;
+          if (connStr) {
+            const url = new URL(donation.picture_url.split('?')[0]); // Remove SAS token
+            const pathParts = url.pathname.split('/').filter(p => p);
+            
+            if (pathParts.length >= 2) {
+              const containerName = pathParts[0];
+              const blobName = pathParts.slice(1).join('/');
+              
+              // Create BlobServiceClient
+              const blobServiceClient = BlobServiceClient.fromConnectionString(connStr);
+              const containerClient = blobServiceClient.getContainerClient(containerName);
+              const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+              
+              await blockBlobClient.deleteIfExists();
+            }
+          }
+        } catch (blobErr) {
+          // Log blob deletion error but continue with database deletion
+          console.error('Error deleting blob:', blobErr);
+        }
+      }
+
+      // Delete the donation from database
+      await this.foodPostRepo.remove(donation);
+
+      // Increment the user's successful donations counter
+      await this.userRepo.increment({ id: req.user.id }, 'num_donations_success', 1);
+
+      return {
+        success: true,
+        message: 'Donation marked as delivered successfully'
+      };
+    } catch (error) {
+      console.error('Error marking donation as delivered:', error);
+      throw new Error('Failed to mark donation as delivered');
+    }
+  }
+
+  @Post('notify-donor/:donationId')
+  @UseGuards(JwtAuthGuard)
+  async notifyDonor(
+    @Param('donationId') donationId: string,
+    @Body() body: { recipientName: string; recipientEmail: string; recipientContact: string },
+    @Req() req
+  ) {
+    try {
+      console.log('Notify donor request received:', { donationId, body, userId: req.user?.id });
+      
+      const id = parseInt(donationId, 10);
+      if (isNaN(id)) {
+        throw new BadRequestException('Invalid donation ID');
+      }
+
+      // Find the donation
+      const donation = await this.foodPostRepo.findOne({ where: { id } });
+      if (!donation) {
+        throw new NotFoundException('Donation not found');
+      }
+
+      console.log('Donation found:', { id: donation.id, donor_id: donation.donor_id });
+
+      if (!donation.donor_id) {
+        throw new BadRequestException('Donation has no donor');
+      }
+
+      // Find the donor
+      const donor = await this.userRepo.findOne({ where: { id: donation.donor_id } });
+      if (!donor) {
+        throw new NotFoundException('Donor not found');
+      }
+
+      console.log('Donor found:', { id: donor.id, email: donor.email, name: donor.name });
+
+      // Send email to donor
+      await this.emailService.sendRecipientDetailsToDonar(
+        donor.email,
+        donor.name,
+        body.recipientName,
+        body.recipientEmail,
+        body.recipientContact
+      );
+
+      console.log('Email sent successfully to donor:', donor.email);
+
+      return {
+        success: true,
+        message: 'Donor notified successfully'
+      };
+    } catch (error) {
+      console.error('Error notifying donor:', error);
+      throw new BadRequestException('Failed to notify donor: ' + error.message);
+    }
+  }
+
+  @Post('add-to-index/:donationId')
+  async addToSearchIndex(
+    @Param('donationId') donationId: string
+  ) {
+    try {
+      console.log('Adding donation to search index:', donationId);
+      
+      const id = parseInt(donationId, 10);
+      if (isNaN(id)) {
+        throw new BadRequestException('Invalid donation ID');
+      }
+
+      // Find the donation
+      const donation = await this.foodPostRepo.findOne({ where: { id } });
+      if (!donation) {
+        throw new NotFoundException('Donation not found');
+      }
+
+      console.log('Found donation:', {
+        id: donation.id,
+        description: donation.description,
+        llm_response: donation.llm_response ? 'present' : 'missing'
+      });
+
+      // Parse LLM response
+      let llmData: any = {};
+      try {
+        llmData = donation.llm_response ? JSON.parse(donation.llm_response) : {};
+      } catch (e) {
+        console.error('Error parsing LLM response:', e);
+      }
+
+      const category = llmData.category || {};
+      
+      // Prepare document for Azure Search - ensure all arrays are valid
+      const searchDocument = {
+        id: id.toString(),
+        caption: category.caption || donation.description || "No description",
+        smart_tags: Array.isArray(category.smart_tags) && category.smart_tags.length > 0 
+          ? category.smart_tags 
+          : ["uncategorized"],
+        ingredients: Array.isArray(category.ingredients) && category.ingredients.length > 0
+          ? category.ingredients 
+          : ["not specified"],
+        azure_tags: Array.isArray(category.azure_tags) && category.azure_tags.length > 0
+          ? category.azure_tags 
+          : ["food"],
+        storage: category.storage || "room temperature",
+        allergens: Array.isArray(category.allergens) && category.allergens.length > 0
+          ? category.allergens 
+          : ["unknown"],
+        meal_type: Array.isArray(category.meal_type) && category.meal_type.length > 0
+          ? category.meal_type 
+          : ["any"],
+      };
+
+      console.log('Prepared search document:', JSON.stringify(searchDocument, null, 2));
+
+      // Call Azure Search API with correct payload structure
+      const azureSearchUrl = 'https://naimat-ai-service.happybush-55cf3067.southeastasia.azurecontainerapps.io/upload_doc';
+      
+      console.log('Calling Azure Search API at:', azureSearchUrl);
+      
+      const payload = {
+        documents: [searchDocument]
+      };
+
+      console.log('Sending payload:', JSON.stringify(payload, null, 2));
+      
+      const response = await axios.post(azureSearchUrl, payload, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000, // 30 seconds timeout
+        validateStatus: function (status) {
+          return status < 500; // Don't throw for 4xx errors, we'll handle them
+        }
+      });
+
+      console.log('Azure Search API response status:', response.status);
+      console.log('Azure Search API response data:', JSON.stringify(response.data, null, 2));
+
+      if (response.status === 200 || response.status === 201) {
+        return {
+          success: true,
+          message: 'Successfully added to search index',
+          azure_response: response.data
+        };
+      } else {
+        console.error('Azure Search API error response:', response.data);
+        throw new BadRequestException(
+          'Azure Search API returned error: ' + JSON.stringify(response.data)
+        );
+      }
+    } catch (error) {
+      console.error('Error adding to search index:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        stack: error.stack
+      });
+      
+      const errorDetail = error.response?.data?.detail || error.message;
+      throw new BadRequestException(
+        'Failed to add to search index: ' + (typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail))
+      );
+    }
+  }
+
+  @Post('search')
+  async searchDonations(
+    @Body() body: { 
+      query: string; 
+      select?: string[]; 
+      search_fields?: string[] 
+    }
+  ) {
+    try {
+      console.log('Search request received:', body);
+
+      if (!body.query || body.query.trim().length === 0) {
+        throw new BadRequestException('Search query is required');
+      }
+
+      // Call Azure Search API
+      const azureSearchUrl = 'https://naimat-ai-service.happybush-55cf3067.southeastasia.azurecontainerapps.io/search';
+      
+      const payload = {
+        query: body.query,
+        select: body.select || ["id", "caption"],
+        search_fields: body.search_fields || ["caption", "ingredients", "azure_tags", "smart_tags", "allergens", "meal_type"]
+      };
+
+      console.log('Calling Azure Search API with payload:', payload);
+      
+      const response = await axios.post(azureSearchUrl, payload, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000, // 30 seconds timeout
+      });
+
+      console.log('Azure Search API response:', response.data);
+
+      return response.data;
+    } catch (error) {
+      console.error('Error searching donations:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      
+      throw new BadRequestException(
+        'Failed to search donations: ' + (error.response?.data?.detail || error.message)
+      );
+    }
   }
 }

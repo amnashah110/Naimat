@@ -11,8 +11,6 @@ function DonationForm() {
   const [isFullScreen, setIsFullScreen] = useState(window.innerWidth >= 1024);
   const [foodType, setFoodType] = useState("");
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [contactInfo, setContactInfo] = useState("");
-  const [contactError, setContactError] = useState("");
   const [showMapModal, setShowMapModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,9 +18,10 @@ function DonationForm() {
   const [quantity, setQuantity] = useState("");
   const [expiry, setExpiry] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
+  const [showIndexingSpinner, setShowIndexingSpinner] = useState(false);
 
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, checkAuthError } = useUser();
 
   const handleLocationSelect = (locationData) => {
     setSelectedLocation(locationData);
@@ -61,11 +60,6 @@ function DonationForm() {
       return;
     }
 
-    if (!contactInfo || contactError) {
-      alert("Please provide valid contact details");
-      return;
-    }
-
     if (!uploadedFile) {
       alert("Please upload a picture of the food");
       return;
@@ -84,7 +78,6 @@ function DonationForm() {
     formData.append("quantity", quantity);
     formData.append("latitude", selectedLocation.coordinates[1].toString());
     formData.append("longitude", selectedLocation.coordinates[0].toString());
-    formData.append("contact", contactInfo);
     
     if (specialInstructions) {
       formData.append("specialInstructions", specialInstructions);
@@ -97,13 +90,19 @@ function DonationForm() {
     try {
       setIsSubmitting(true);
       
-      const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/upload", {
+      const response = await fetch("http://localhost:3000/donation/upload", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
         },
         body: formData,
       });
+
+      // Check if authentication failed
+      if (checkAuthError(response)) {
+        setIsSubmitting(false);
+        return;
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -113,6 +112,40 @@ function DonationForm() {
       const result = await response.json();
       console.log("✅ Donation submitted successfully:", result);
       
+      // Now add to Azure Search index via backend
+      setShowIndexingSpinner(true);
+      
+      try {
+        console.log("📤 Adding donation to search index via backend...");
+
+        // Call backend endpoint to add to index
+        const indexResponse = await fetch(
+          `http://localhost:3000/donation/add-to-index/${result.foodPostId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            }
+          }
+        );
+
+        if (indexResponse.ok) {
+          const indexResult = await indexResponse.json();
+          console.log("✅ Successfully added to Azure Search index:", indexResult);
+        } else {
+          const errorData = await indexResponse.json().catch(() => ({ message: 'Unknown error' }));
+          console.error("⚠️ Failed to add to Azure Search index:", errorData);
+          console.warn("⚠️ Indexing failed but donation was saved successfully. The donation may not appear in search results immediately.");
+          // Don't fail the whole process if indexing fails
+        }
+      } catch (indexError) {
+        console.error("⚠️ Error during indexing:", indexError);
+        console.warn("⚠️ Indexing failed but donation was saved successfully.");
+        // Don't fail the whole process if indexing fails
+      } finally {
+        setShowIndexingSpinner(false);
+      }
+      
       alert("Thank you! Your donation has been submitted successfully.");
       navigate("/dashboard");
       
@@ -121,20 +154,6 @@ function DonationForm() {
       alert(`Failed to submit donation: ${error.message}`);
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const validateContact = (value) => {
-    setContactInfo(value);
-    const phoneRegex = /^\d{11}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (value.trim() === "") {
-      setContactError("Contact details are required");
-    } else if (!phoneRegex.test(value) && !emailRegex.test(value)) {
-      setContactError("Enter a valid 11-digit phone number or valid email");
-    } else {
-      setContactError("");
     }
   };
 
@@ -166,7 +185,6 @@ function DonationForm() {
               <li>Provide accurate food type details.</li>
               <li>Mention correct quantity (in kg or meal boxes).</li>
               <li>Select your exact location on the map.</li>
-              <li>Provide a working phone number or email for contact.</li>
               <li>
                 Use "Special Instructions" for any important notes (optional).
               </li>
@@ -331,40 +349,6 @@ function DonationForm() {
               </div>
             )}
 
-            <div>CONTACT DETAILS
-              {contactError && (
-                <p
-                  style={{
-                    fontSize: "0.8rem",
-                    color: "#ff6b6b",
-                    marginTop: "0.2rem",
-                    marginBottom: "0",
-                  }}
-                >
-                  ⚠ {contactError}
-                </p>
-              )}
-            </div>
-            <div
-              style={{
-                minHeight: "4.5rem",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: contactError ? "flex-start" : "center",
-              }}
-            >
-              <input
-                type="text"
-                id="contactInfo"
-                name="contactInfo"
-                value={contactInfo}
-                onChange={(e) => validateContact(e.target.value)}
-                placeholder="11-digit phone number or email"
-                required
-              />
-
-            </div>
-
             <p>SPECIAL INSTRUCTIONS</p>
             <input
               type="text"
@@ -441,6 +425,74 @@ function DonationForm() {
           </div>
         </div>
       </section>
+
+      {/* INDEXING SPINNER MODAL */}
+      {showIndexingSpinner && (
+        <>
+          <div style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.85)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999
+          }}>
+            <div style={{
+              backgroundColor: "#1a1a1a",
+              borderRadius: "12px",
+              padding: "2.5rem 3rem",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "1.5rem",
+              border: "2px solid #f2e9b9",
+              boxShadow: "0 4px 20px rgba(242, 233, 185, 0.3)"
+            }}>
+              {/* Spinner */}
+              <div style={{
+                width: "60px",
+                height: "60px",
+                border: "4px solid rgba(242, 233, 185, 0.2)",
+                borderTop: "4px solid #f2e9b9",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite"
+              }} />
+              <style>{`
+                @keyframes spin {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+                }
+              `}</style>
+              
+              {/* Text */}
+              <div style={{
+                fontSize: "1.2rem",
+                fontWeight: "bold",
+                textAlign: "center",
+                fontFamily: "DM Mono",
+                color: "#f2e9b9"
+              }}>
+                Adding donation to index...
+              </div>
+              
+              <div style={{
+                fontSize: "0.9rem",
+                textAlign: "center",
+                fontFamily: "DM Mono",
+                color: "#e2d7a0",
+                opacity: 0.8,
+                maxWidth: "300px"
+              }}>
+                Please wait while we process your donation
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -44,4 +44,103 @@ export class EmailService {
       html,
     });
   }
+
+  async sendRecipientDetailsToDonar(
+    donorEmail: string,
+    donorName: string,
+    recipientName: string,
+    recipientEmail: string,
+    recipientContact: string,
+  ) {
+    const from = this.emailConfiguration.from;
+    const html = `
+      <meta name="color-scheme" content="light only">
+      <meta name="supported-color-schemes" content="light only">
+      <style>
+        a {
+          color: #87CEEB !important;
+          text-decoration: none !important;
+        }
+        a:hover {
+          color: #B0E0E6 !important;
+          text-decoration: underline !important;
+        }
+        @media (prefers-color-scheme: dark) {
+          div, p, h2, a { 
+            background: #000000 !important;
+            color: rgb(242, 233, 185) !important;
+          }
+          h2 { color: rgb(242, 233, 185) !important; }
+          p { color: rgb(242, 233, 185) !important; }
+          a { color: #87CEEB !important; }
+          a:hover { color: #B0E0E6 !important; }
+          p.footer-text { color: rgb(200, 190, 160) !important; }
+          div.divider { background: rgb(242, 233, 185) !important; }
+          a.button { background: rgb(242, 233, 185) !important; color: #000000 !important; }
+          img.logo { filter: invert(100%) !important; }
+        }
+      </style>
+
+      <div style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; max-width:600px; margin:0 auto; padding-top:24px; border-radius:12px; background-color:#000000 !important; color: rgb(242, 233, 185) !important; box-shadow:0 8px 24px rgba(0,0,0,0.5); text-align:center; overflow:hidden;" bgcolor="#000000">
+        
+        <!-- Logo -->
+        <div style="width: 100px; height: 100px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+          <img class="logo" src="cid:logo" alt="Naimat Logo" style="width: 100%; height: auto; object-fit: contain;" />
+        </div>
+
+        <!-- Title -->
+        <h2 style="color: rgb(242, 233, 185); font-size: 24px; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.2px;">
+          Hi ${donorName}!<br />You're about to make a difference!
+        </h2>
+
+        <!-- Message -->
+        <p style="font-size: 15px; color: rgb(242, 233, 185); line-height: 1.6; margin: 0 auto 24px; max-width: 480px; padding: 12px 16px;">
+          We hope you're doing well. You have been assigned a recipient. Please check the details below and follow the next steps to proceed.
+        </p>
+
+        <!-- Recipient Details -->
+        <h2 style="color: rgb(242, 233, 185); font-size: 20px; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.2px;">
+          Recipient Details
+        </h2>
+        <p style="font-size: 15px; color: rgb(242, 233, 185); line-height: 1.6; margin: 0 auto 24px; max-width: 480px; text-align: left;">
+          <strong>Name:</strong> ${recipientName}<br/>
+          <strong>Email Address:</strong> <a href="mailto:${recipientEmail}" style="color: #87CEEB !important; text-decoration: none;">${recipientEmail}</a><br/>
+          <strong>Contact Number:</strong> <a href="tel:${recipientContact}" style="color: #87CEEB !important; text-decoration: none;">${recipientContact}</a><br/>
+        </p>
+        
+        <!-- Next Steps -->
+        <h2 style="color: rgb(242, 233, 185); font-size: 20px; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.2px;">
+          Next Steps
+        </h2>
+        <p style="font-size: 15px; color: rgb(242, 233, 185); line-height: 1.6; margin: 0 auto 24px; max-width: 480px;">
+          You may contact your recipient to introduce yourself and coordinate any next actions. Remember to maintain privacy and communicate respectfully.
+        </p>
+
+        <!-- Footer -->
+        <div class="divider" style="height: 1px; background: rgb(242, 233, 185); margin: 24px auto; max-width: 80%;"></div>
+        
+        <p class="footer-text" style="font-size: 12px; color: rgb(200, 190, 160); line-height: 1.5; margin: 0 0 16px;">
+          This email was intended for ${donorEmail}. <br/>If this email was not meant for you, feel free to ignore it.
+        </p>
+        <br/>
+      </div>
+    `;
+
+    // Attach logo
+    const logoPath = "./././assets/Logo.png";
+
+    await this.transporter.sendMail({
+      from,
+      to: donorEmail,
+      subject: 'Naimat - Recipient Assigned for Your Donation',
+      html,
+      attachments: [
+        {
+          filename: 'logo.png',
+          path: logoPath,
+          cid: 'logo'
+        }
+      ]
+    });
+  }
 }

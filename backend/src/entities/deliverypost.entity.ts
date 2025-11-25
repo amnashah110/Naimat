@@ -13,9 +13,15 @@ export class DeliveryPost {
   @JoinColumn({ name: 'foodpost_id' })
   foodpost: FoodPost;
 
-  @Column()
+  @Column({ nullable: true })
   rider_id: number;
 
-  @Column({ type: 'timestamp' })
-  shipment_date: Date;
+  @Column({ nullable: true })
+  recipient_id: number;
+
+  @Column({ type: 'float', nullable: true })
+  latitude: number;
+
+  @Column({ type: 'float', nullable: true })
+  longitude: number;
 }

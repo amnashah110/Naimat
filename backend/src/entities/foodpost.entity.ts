@@ -49,4 +49,7 @@ export class FoodPost {
 
   @Column({ type: 'double precision', nullable: true })
   longitude: number | null;
+
+  @Column({ type: 'integer', nullable: true })
+  quantity: number | null;
 }
