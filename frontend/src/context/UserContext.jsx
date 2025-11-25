@@ -22,7 +22,7 @@ export const UserProvider = ({ children }) => {
         return;
       }
 
-      const response = await fetch("naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/user/profile", {
+      const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/user/profile", {
         headers: {
           "Authorization": `Bearer ${token}`,
         },

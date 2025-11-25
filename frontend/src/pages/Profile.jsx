@@ -44,7 +44,7 @@ function Profile() {
 
       console.log("Fetching donation stats...");
 
-      const response = await fetch("naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/user/stats", {
+      const response = await fetch("https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/user/stats", {
         headers: {
           "Authorization": `Bearer ${token}`,
         },

@@ -12,7 +12,8 @@ async function bootstrap() {
       'http://localhost:3000', 
       'http://localhost:5174',
       'https://naimat.tech',
-      'https://www.naimat.tech'
+      'https://www.naimat.tech',
+      'https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net'
     ], // Allow local development and production
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

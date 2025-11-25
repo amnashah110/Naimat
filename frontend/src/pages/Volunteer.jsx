@@ -37,7 +37,7 @@ function Volunteer() {
     const fetchDeliveryPosts = async () => {
       try {
         setLoading(true);
-        const response = await fetch('naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/delivery-post/all');
+        const response = await fetch('https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/delivery-post/all');
         if (!response.ok) {
           throw new Error('Failed to fetch delivery posts');
         }
@@ -164,7 +164,7 @@ function Volunteer() {
       console.log('Sending request to notify donor:', requestBody);
 
       // Send email notification to donor
-      const response = await fetch(`naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/delivery-post/notify-donor/${deliveryPostId}`, {
+      const response = await fetch(`https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/delivery-post/notify-donor/${deliveryPostId}`, {
         method: 'POST',
         headers: {
           "Authorization": `Bearer ${token}`,

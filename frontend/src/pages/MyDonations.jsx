@@ -22,7 +22,7 @@ function MyDonations() {
 
       try {
         setLoading(true);
-        const response = await fetch('naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/available');
+        const response = await fetch('https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/available');
         if (!response.ok) {
           throw new Error('Failed to fetch donations');
         }
@@ -117,7 +117,7 @@ function MyDonations() {
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/${donationId}`, {
+      const response = await fetch(`https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/${donationId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -149,7 +149,7 @@ function MyDonations() {
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/mark-delivered/${donationId}`, {
+      const response = await fetch(`https://naimat-backend-f9drh3fcceewebcd.southeastasia-01.azurewebsites.net/donation/mark-delivered/${donationId}`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
