@@ -1,0 +1,10 @@
+{
+  "routes": [
+    {
+      "route": "/*",
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' https://atlas.microsoft.com; style-src 'self' https://atlas.microsoft.com 'unsafe-inline'; connect-src 'self' https://atlas.microsoft.com; img-src 'self' https://atlas.microsoft.com data:; frame-ancestors 'self';"
+      }
+    }
+  ]
+}
